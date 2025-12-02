@@ -206,7 +206,7 @@ export class EventClient {
 
       if (this.eventSource) {
         this.eventSource.onopen = () => {
-          console.log('✅ Connected to Surflux event stream');
+          console.log('Connected to Surflux event stream');
           this.isConnected = true;
           resolve();
         };
@@ -237,7 +237,7 @@ export class EventClient {
         };
 
         this.eventSource.onerror = (error: any) => {
-          console.error('❌ EventSource error:', error);
+          console.error('EventSource error:', error);
           if (!this.isConnected) {
             reject(error);
           }
@@ -253,7 +253,7 @@ export class EventClient {
       this.eventSource.close();
       this.eventSource = null;
       this.isConnected = false;
-      console.log('🔌 Disconnected from event stream');
+      console.log('Disconnected from event stream');
     }
   }
 

@@ -17,7 +17,7 @@ program
   .option('-o, --output <path>', 'Output directory for generated types', './sui-events')
   .action(async (packageId: string, network: string, options: { output: string }) => {
     try {
-      console.log(chalk.blue('🔍 Fetching package events...'));
+      console.log(chalk.blue('Fetching package events...'));
       console.log(chalk.gray(`Package ID: ${packageId}`));
       console.log(chalk.gray(`Network: ${network}`));
 
@@ -84,11 +84,11 @@ ${existingExports.map((pkg) => `export * from './${pkg}';`).join('\n')}
 `;
       await fs.writeFile(rootIndexPath, rootIndexContent);
 
-      console.log(chalk.green('✅ Types generated successfully!'));
-      console.log(chalk.gray(`📁 Output: ${packageOutputDir}`));
-      console.log(chalk.gray(`📄 Types: ${typesPath}`));
+      console.log(chalk.green('Types generated successfully!'));
+      console.log(chalk.gray(`Output: ${packageOutputDir}`));
+      console.log(chalk.gray(`Types: ${typesPath}`));
     } catch (error: any) {
-      console.error(chalk.red('❌ Error generating types:'), error.message);
+      console.error(chalk.red('Error generating types:'), error.message);
       process.exit(1);
     }
   });
