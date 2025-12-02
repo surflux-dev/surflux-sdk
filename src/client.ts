@@ -126,14 +126,31 @@ const EventSourceClass = getEventSourceClass();
 
 interface SurfluxEvent {
   type: string;
-  data: any;
-  timestamp?: string;
   timestamp_ms?: number;
   checkpoint_id?: number;
   tx_hash?: string;
+  data: {
+    event_index?: number;
+    sender?: string;
+    event_type?: string;
+    contents: any;
+  };
 }
 
 interface SurfluxPackageEvent {
+  type: 'package_event';
+  timestamp_ms: number;
+  checkpoint_id: number;
+  tx_hash: string;
+  data: {
+    event_index: number;
+    sender: string;
+    event_type: string;
+    contents: any;
+  };
+}
+
+interface FullPackageEvent {
   type: 'package_event';
   timestamp_ms: number;
   checkpoint_id: number;
@@ -214,20 +231,22 @@ export class EventClient {
         this.eventSource.onmessage = (event: MessageEvent) => {
           try {
             const rawData = JSON.parse(event.data);
-            // Handle Surflux event format: package_event with nested data structure
             if (rawData.type === 'package_event' && rawData.data?.event_type) {
               const packageEvent = rawData as SurfluxPackageEvent;
-              // Transform to our expected format
               const transformedEvent: SurfluxEvent = {
                 type: packageEvent.data.event_type,
-                data: packageEvent.data.contents,
                 timestamp_ms: packageEvent.timestamp_ms,
                 checkpoint_id: packageEvent.checkpoint_id,
                 tx_hash: packageEvent.tx_hash,
+                data: {
+                  event_index: packageEvent.data.event_index,
+                  sender: packageEvent.data.sender,
+                  event_type: packageEvent.data.event_type,
+                  contents: packageEvent.data.contents,
+                },
               };
-              this.handleEvent(transformedEvent);
+              this.handleEvent(transformedEvent, packageEvent);
             } else {
-              // Fallback to original format
               const data = rawData as SurfluxEvent;
               this.handleEvent(data);
             }
@@ -257,7 +276,7 @@ export class EventClient {
     }
   }
 
-  private handleEvent(event: SurfluxEvent): void {
+  private handleEvent(event: SurfluxEvent, fullPackageEvent?: SurfluxPackageEvent): void {
     if (!event.type) return;
 
     if (!event.type.includes(this.packageId)) {
@@ -267,32 +286,49 @@ export class EventClient {
     const eventTypeParts = event.type.split('::');
     const eventTypeName = eventTypeParts[eventTypeParts.length - 1];
 
-    const handlers: EventHandler[] = [];
+    const handlerEntries: Array<{ handler: EventHandler; isWildcard: boolean }> = [];
 
     const exactHandlers = this.subscriptions.get(event.type);
     if (exactHandlers) {
-      handlers.push(...exactHandlers);
+      exactHandlers.forEach((handler) => {
+        handlerEntries.push({ handler, isWildcard: false });
+      });
     }
 
     const nameHandlers = this.subscriptions.get(eventTypeName);
     if (nameHandlers) {
-      handlers.push(...nameHandlers);
+      nameHandlers.forEach((handler) => {
+        handlerEntries.push({ handler, isWildcard: false });
+      });
     }
 
     const wildcardHandlers = this.subscriptions.get('*');
     if (wildcardHandlers) {
-      handlers.push(...wildcardHandlers);
+      wildcardHandlers.forEach((handler) => {
+        handlerEntries.push({ handler, isWildcard: true });
+      });
     }
 
     for (const [pattern, patternHandlers] of this.subscriptions.entries()) {
       if (pattern.includes('*') && this.matchesPattern(event.type, pattern)) {
-        handlers.push(...patternHandlers);
+        const isWildcard = pattern === '*';
+        patternHandlers.forEach((handler) => {
+          handlerEntries.push({ handler, isWildcard });
+        });
       }
     }
 
-    handlers.forEach((handler) => {
+    handlerEntries.forEach(({ handler, isWildcard }) => {
       try {
-        handler(event.data);
+        if (isWildcard) {
+          if (fullPackageEvent) {
+            handler(fullPackageEvent as any);
+          } else {
+            handler(event as any);
+          }
+        } else {
+          handler(event.data.contents || event.data);
+        }
       } catch (error) {
         console.error(`Error in event handler for ${event.type}:`, error);
       }
