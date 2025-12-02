@@ -436,6 +436,8 @@ Subscribe to an event type. Supports:
 - Event name only: `EventName`
 - Wildcard patterns: `0x...::*::EventName`
 
+See [Wildcard Usage](#-wildcard-usage) section for detailed examples.
+
 ##### `off(eventType: string, handler?: (event: any) => void): void`
 
 Unsubscribe from an event type. If no handler is provided, removes all handlers for that event type.
@@ -446,7 +448,9 @@ Subscribe to an event with type safety. Uses generated types to provide full Int
 
 ##### `onAll(handler: (event: SurfluxEvent) => void): void`
 
-Subscribe to all events from this package.
+Subscribe to all events from this package. Receives the full event structure with metadata (timestamp, checkpoint_id, tx_hash, etc.).
+
+See [Wildcard Usage](#-wildcard-usage) section for detailed examples.
 
 ##### `waitFor<T>(eventType: string, timeout?: number): Promise<T>`
 
@@ -455,6 +459,152 @@ Wait for a specific event. Returns a promise that resolves when the event is rec
 ##### `get connected(): boolean`
 
 Check if client is connected to the event stream.
+
+## 🎯 Wildcard Usage
+
+The EventClient supports powerful wildcard pattern matching for flexible event subscriptions. There are two main approaches:
+
+### Full Wildcard (`onAll`)
+
+Use `onAll()` to subscribe to **all events** from your package. This method receives the complete event structure with all metadata:
+
+```typescript
+client.onAll((event) => {
+  // event contains full structure:
+  // {
+  //   type: 'package_event',
+  //   timestamp_ms: 1764681385151,
+  //   checkpoint_id: 270652773,
+  //   tx_hash: 'EveQMmg4dkiv8Lmom4tCcHyYTJ4oBWs3qZ1EQzWrP9rW',
+  //   data: {
+  //     event_index: 0,
+  //     sender: '0x...',
+  //     event_type: '0x...::module::EventName',
+  //     contents: { ... }
+  //   }
+  // }
+  console.log('Event type:', event.type);
+  console.log('Transaction:', event.tx_hash);
+  console.log('Checkpoint:', event.checkpoint_id);
+  console.log('Timestamp:', event.timestamp_ms);
+  console.log('Event data:', event.data);
+});
+```
+
+**Use cases:**
+- Logging all events for debugging
+- Monitoring all activity from a package
+- Building analytics dashboards
+- Event routing/dispatching
+
+### Pattern Matching Wildcards
+
+Use wildcard patterns with `on()` to match multiple events based on patterns. These handlers receive **only the event contents** (not the full metadata):
+
+```typescript
+// Match all events from a specific module
+client.on('0xabc123::my_module::*', (event) => {
+  // event is just the contents: { field1: 'value', field2: 'value' }
+  console.log('Event from my_module:', event);
+});
+
+// Match all events with names starting with "Badge"
+client.on('0xabc123::*::Badge*', (event) => {
+  // Matches: BadgeMinted, BadgeBurned, BadgeTransferred, etc.
+  console.log('Badge-related event:', event);
+});
+
+// Match all events from any module with a specific name
+client.on('0xabc123::*::ListingCreatedEvent', (event) => {
+  // Matches ListingCreatedEvent from any module in the package
+  console.log('Listing created:', event);
+});
+
+// Match events with partial package ID (useful for multiple packages)
+client.on('*::offer::*', (event) => {
+  // Matches any event from any "offer" module in any package
+  console.log('Offer event:', event);
+});
+```
+
+**Pattern Syntax:**
+- `*` matches any sequence of characters
+- Patterns are converted to regular expressions: `*` becomes `.*`
+- Matching is case-sensitive
+
+**Examples:**
+
+```typescript
+// Match all auction events
+client.on('0xabc123::*::Auction*', (event) => {
+  // Matches: AuctionCreated, AuctionCancelled, AuctionFinalized
+  console.log('Auction event:', event);
+});
+
+// Match all events from the "marketplace" module
+client.on('0xabc123::marketplace::*', (event) => {
+  console.log('Marketplace event:', event);
+});
+
+// Match specific event from any module
+client.on('0xabc123::*::TransferEvent', (event) => {
+  console.log('Transfer event from any module:', event);
+});
+```
+
+### Handler Data Differences
+
+**Important:** The data passed to handlers differs based on the subscription type:
+
+| Subscription Type | Handler Receives |
+|------------------|------------------|
+| `onAll()` | Full event structure with `type`, `timestamp_ms`, `checkpoint_id`, `tx_hash`, `data` |
+| `on('*')` | Same as `onAll()` - full event structure |
+| `on('pattern')` | Only event contents (`event.data.contents`) |
+| `on('EventName')` | Only event contents (`event.data.contents`) |
+| `on('0x...::module::EventName')` | Only event contents (`event.data.contents`) |
+
+**Example:**
+
+```typescript
+// Full event structure
+client.onAll((fullEvent) => {
+  console.log(fullEvent.tx_hash);        // ✅ Available
+  console.log(fullEvent.checkpoint_id);  // ✅ Available
+  console.log(fullEvent.data.contents); // ✅ Available
+});
+
+// Pattern matching - only contents
+client.on('0xabc123::*::ListingCreatedEvent', (contents) => {
+  console.log(contents.domain_name);     // ✅ Available
+  console.log(contents.price);           // ✅ Available
+  // console.log(contents.tx_hash);      // ❌ Not available
+  // console.log(contents.checkpoint_id); // ❌ Not available
+});
+```
+
+### Best Practices
+
+1. **Use `onAll()` for monitoring/logging**: When you need transaction metadata
+2. **Use pattern matching for business logic**: When you only need event data
+3. **Combine both**: Use `onAll()` for logging and specific patterns for handling
+
+```typescript
+// Log everything
+client.onAll((event) => {
+  logger.info(`Event: ${event.data.event_type}`, {
+    tx: event.tx_hash,
+    checkpoint: event.checkpoint_id,
+    timestamp: event.timestamp_ms
+  });
+});
+
+// Handle specific events
+client.on('0xabc123::*::ListingCreatedEvent', (listing) => {
+  // Business logic with just the listing data
+  processListing(listing);
+});
+```
 
 ## 🔧 Generated Types
 

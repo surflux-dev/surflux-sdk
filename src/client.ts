@@ -310,10 +310,10 @@ export class EventClient {
     }
 
     for (const [pattern, patternHandlers] of this.subscriptions.entries()) {
+      if (pattern === '*') continue;
       if (pattern.includes('*') && this.matchesPattern(event.type, pattern)) {
-        const isWildcard = pattern === '*';
         patternHandlers.forEach((handler) => {
-          handlerEntries.push({ handler, isWildcard });
+          handlerEntries.push({ handler, isWildcard: false });
         });
       }
     }
