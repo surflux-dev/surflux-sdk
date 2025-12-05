@@ -167,12 +167,7 @@ interface EventHandler<T = any> {
   (event: T): void;
 }
 
-interface EventSubscription {
-  eventType: string;
-  handler: EventHandler;
-}
-
-export class EventClient {
+export class SurfluxPackageEventsClient {
   private apiKey: string;
   private packageId: string;
   private network: string;
@@ -204,7 +199,6 @@ export class EventClient {
         this.network === 'mainnet' ? 'https://flux.surflux.dev' : 'https://testnet-flux.surflux.dev';
       const SSE_URL = `${baseUrl}/events?api-key=${this.apiKey}`;
 
-      // Browser EventSource doesn't support custom headers, Node.js eventsource does
       const globalObj =
         typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : null;
       const isBrowser = globalObj && (globalObj as any).EventSource;

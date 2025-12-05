@@ -4,6 +4,13 @@
   "description": "Type-safe Sui event streaming with Surflux integration",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "bin": {
     "sui-event-catcher": "./dist/cli.js"
   },
@@ -24,6 +31,7 @@
   "license": "MIT",
   "dependencies": {
     "@mysten/sui": "^1.45.0",
+    "axios": "^1.13.2",
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
     "eventsource": "^2.0.2",
