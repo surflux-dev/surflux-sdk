@@ -9,7 +9,7 @@ import * as fs from 'fs-extra';
 const program = new Command();
 
 program
-  .name('sui-event-catcher')
+  .name('@surflux/sdk')
   .description('Generate TypeScript types for Sui package events')
   .version('1.0.0')
   .argument('<packageId>', 'Sui package ID')
@@ -36,10 +36,10 @@ program
       const indexPath = path.join(packageOutputDir, 'index.ts');
       const indexContent = `// Re-export types and client for convenience
 export * from './types';
-export { EventClient } from 'sui-event-catcher';
+export { EventClient } from '@surflux/sdk';
 
 // Helper to create a typed client instance
-import { EventClient } from 'sui-event-catcher';
+import { EventClient } from '@surflux/sdk';
 import packageInfo from './package-info.json';
 
 /**

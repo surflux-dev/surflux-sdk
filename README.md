@@ -11,7 +11,7 @@
 ## Installation
 
 ```bash
-npm install sui-event-catcher
+npm install @surflux/sdk
 ```
 
 ## Quick Start
@@ -23,7 +23,7 @@ Visit [Surflux](https://surflux.dev) to get your API key.
 ### 2. Generate Event Types (Optional)
 
 ```bash
-npx sui-event-catcher <packageId> <network> -o ./sui-events
+npx @surflux/sdk <packageId> <network> -o ./sui-events
 ```
 
 ## Event Streaming
@@ -31,7 +31,7 @@ npx sui-event-catcher <packageId> <network> -o ./sui-events
 ### Basic Usage
 
 ```typescript
-import { SurfluxPackageEventsClient } from 'sui-event-catcher';
+import { SurfluxPackageEventsClient } from '@surflux/sdk';
 
 const client = new SurfluxPackageEventsClient(
   'your-api-key',
@@ -75,7 +75,7 @@ client.on('0x123::module::*', (event) => {
 ### Get NFT by ID
 
 ```typescript
-import { SurfluxIndexersClient } from 'sui-event-catcher';
+import { SurfluxIndexersClient } from '@surflux/sdk';
 
 const client = new SurfluxIndexersClient('api-key', 'testnet');
 
@@ -163,7 +163,7 @@ const candles = await client.deepbook.getOHLCV({
 
 ```typescript
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { SurfluxPackageEventsClient } from 'sui-event-catcher';
+import { SurfluxPackageEventsClient } from '@surflux/sdk';
 
 @Injectable()
 export class EventsService implements OnModuleInit {
@@ -187,7 +187,7 @@ export class EventsService implements OnModuleInit {
 
 ```typescript
 import { useEffect, useState } from 'react';
-import { SurfluxPackageEventsClient } from 'sui-event-catcher';
+import { SurfluxPackageEventsClient } from '@surflux/sdk';
 
 function useSuiEvents(apiKey: string, packageId: string) {
   const [events, setEvents] = useState([]);
@@ -269,7 +269,7 @@ new SurfluxIndexersClient(apiKey: string, network: 'mainnet' | 'testnet')
 Generate TypeScript types from your Sui package:
 
 ```bash
-npx sui-event-catcher <packageId> <network> [options]
+npx @surflux/sdk <packageId> <network> [options]
 ```
 
 **Options:**

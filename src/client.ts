@@ -210,7 +210,7 @@ export class SurfluxPackageEventsClient {
           headers: {
             Accept: 'text/event-stream',
             'Cache-Control': 'no-cache',
-            'User-Agent': 'sui-event-catcher',
+            'User-Agent': '@surflux/sdk',
           },
         }) as any;
       }
