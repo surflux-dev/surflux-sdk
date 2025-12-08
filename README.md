@@ -1,6 +1,7 @@
 ## Features
 
 - **Event Streaming**: Real-time Server-Sent Events (SSE) for Sui package events
+- **Deepbook Event Streaming**: Real-time streaming for Deepbook trading events (live trades, order book updates, etc.)
 - **Automatic Type Generation**: Generate TypeScript types directly from Sui package events
 - **NFT API**: Query NFT collections, tokens, and holders
 - **Deepbook API**: Access trading pools, order books, trades, and OHLCV data
@@ -157,6 +158,102 @@ const candles = await client.deepbook.getOHLCV({
 });
 ```
 
+## Deepbook Event Streaming
+
+### All Updates Stream
+
+Create a client for receiving all Deepbook events (live trades, order book depth, order placements, cancellations, modifications, and expirations):
+
+```typescript
+import { SurfluxDeepbookEventsClient, DeepbookStreamType, DeepbookEventType } from '@surflux/sdk';
+
+// Create client with ALL_UPDATES stream type
+const client = new SurfluxDeepbookEventsClient(
+  'your-api-key',
+  'SUI-USDC',
+  DeepbookStreamType.ALL_UPDATES,
+  'testnet'
+);
+
+// Connect to the stream (with optional filters)
+await client.connect({
+  lastId: '1755091934020-0',
+  type: DeepbookEventType.LIVE_TRADES
+});
+
+// Subscribe to specific event types (all 6 event types available)
+client.on('deepbook_live_trades', (trade) => {
+  console.log('Live trade:', trade);
+});
+
+client.on('deepbook_order_book_depth', (depth) => {
+  console.log('Order book depth:', depth);
+});
+
+client.on('deepbook_all_updates_placed', (order) => {
+  console.log('Order placed:', order);
+});
+
+client.on('deepbook_all_updates_canceled', (order) => {
+  console.log('Order canceled:', order);
+});
+```
+
+### Live Trades Stream
+
+Create a client for receiving only live trades and order book depth updates:
+
+```typescript
+import { SurfluxDeepbookEventsClient, DeepbookStreamType } from '@surflux/sdk';
+
+// Create client with LIVE_TRADES stream type
+const client = new SurfluxDeepbookEventsClient(
+  'your-api-key',
+  'SUI-USDC',
+  DeepbookStreamType.LIVE_TRADES,
+  'testnet'
+);
+
+// Connect to the stream
+await client.connect();
+
+// Subscribe to event types (only live_trades and order_book_depth available)
+client.on('deepbook_live_trades', (trade) => {
+  console.log('Trade:', trade);
+});
+
+client.on('deepbook_order_book_depth', (depth) => {
+  console.log('Depth update:', depth);
+});
+
+// Connect from a specific point
+await client.connect({
+  lastId: '1755091934020-0'
+});
+```
+
+### Subscribe to All Events
+
+```typescript
+client.onAll((event) => {
+  console.log('Event type:', event.type);
+  console.log('Event data:', event.data);
+});
+```
+
+### Wait for Event
+
+```typescript
+const trade = await client.waitFor('deepbook_live_trades', 5000);
+console.log('Trade received:', trade);
+```
+
+### Disconnect
+
+```typescript
+client.disconnect();
+```
+
 ## Framework Examples
 
 ### NestJS
@@ -263,6 +360,74 @@ new SurfluxIndexersClient(apiKey: string, network: 'mainnet' | 'testnet')
 - `getTrades(params: { pool_name: string, from?: number, to?: number, limit?: number }): Promise<Trade[]>`
 - `getOrderBook(params: { pool_name: string, limit?: number }): Promise<OrderBookDepth>`
 - `getOHLCV(params: { pool_name: string, timeframe: '1m' | '5m' | '15m' | '1h' | '4h' | '1d', from?: number, to?: number, limit?: number }): Promise<OHLCVCandle[]>`
+
+### SurfluxDeepbookEventsClient
+
+#### Constructor
+
+```typescript
+new SurfluxDeepbookEventsClient<T extends DeepbookStreamType>(
+  apiKey: string,
+  poolName: string,
+  streamType: T,
+  network?: 'mainnet' | 'testnet'
+)
+```
+
+**Parameters:**
+- `apiKey` - Your Surflux API key
+- `poolName` - The trading pool name (e.g., 'SUI-USDC')
+- `streamType` - The stream type (`DeepbookStreamType.ALL_UPDATES` or `DeepbookStreamType.LIVE_TRADES`)
+- `network` - Network to use ('mainnet' or 'testnet', default: 'testnet')
+
+**Example:**
+```typescript
+import { SurfluxDeepbookEventsClient, DeepbookStreamType } from '@surflux/sdk';
+
+// For all updates
+const allUpdatesClient = new SurfluxDeepbookEventsClient(
+  'api-key',
+  'SUI-USDC',
+  DeepbookStreamType.ALL_UPDATES,
+  'testnet'
+);
+
+// For live trades only
+const liveTradesClient = new SurfluxDeepbookEventsClient(
+  'api-key',
+  'SUI-USDC',
+  DeepbookStreamType.LIVE_TRADES,
+  'testnet'
+);
+```
+
+#### Methods
+
+- `connect(params?: { lastId?: string, type?: DeepbookEventType }): Promise<void>` - Connect to the stream based on the stream type selected in constructor
+  - For `ALL_UPDATES`: accepts `{ lastId?: string, type?: DeepbookEventType }`
+  - For `LIVE_TRADES`: accepts `{ lastId?: string }`
+- `disconnect(): void` - Disconnect from stream
+- `on(eventType: AllowedEventType, handler: (event: EventData) => void): void` - Subscribe to specific event type (type-safe based on stream type)
+- `off(eventType: string, handler?: Function): void` - Unsubscribe from event
+- `onAll(handler: (event: StreamEventType) => void): void` - Subscribe to all events
+- `waitFor(eventType: AllowedEventType, timeout?: number): Promise<EventData>` - Wait for specific event (type-safe)
+- `get connected: boolean` - Connection status
+
+#### Event Types by Stream Type
+
+**For `DeepbookStreamType.ALL_UPDATES` (all 6 event types available):**
+- `deepbook_live_trades` - Live trade events
+- `deepbook_order_book_depth` - Order book depth updates
+- `deepbook_all_updates_canceled` - Order cancellation events
+- `deepbook_all_updates_placed` - Order placement events
+- `deepbook_all_updates_modified` - Order modification events
+- `deepbook_all_updates_expired` - Order expiration events
+
+**For `DeepbookStreamType.LIVE_TRADES` (only 2 event types available):**
+- `deepbook_live_trades` - Live trade events
+- `deepbook_order_book_depth` - Order book depth updates
+
+**Note:** The client is type-safe - TypeScript will only allow subscribing to event types that are available for the selected stream type.
 
 ## Type Generation
 

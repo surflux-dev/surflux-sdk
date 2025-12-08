@@ -5,5 +5,7 @@ export { DeepbookClient } from './deepbook-client';
 export type { DeepbookClient as DeepbookClientType } from './deepbook-client';
 export { NFTClient } from './nft-client';
 export type { NFTClient as NFTClientType } from './nft-client';
+export { SurfluxDeepbookEventsClient } from './deepbook-events-client';
+export type { SurfluxDeepbookEventsClient as SurfluxDeepbookEventsClientType } from './deepbook-events-client';
 export * from './types';
 export * from './generator';
