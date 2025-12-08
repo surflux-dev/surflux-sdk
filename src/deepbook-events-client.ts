@@ -1,28 +1,27 @@
-import { httpRequest } from './http-client';
 import {
   DeepbookEvent,
   DeepbookLiveTradeEventType,
   DeepbookStreamType,
   ReceiveAllUpdatesParams,
   ReceiveLiveTradesParams,
-  Trade,
-  DeepbookOrderBookDepthData,
-  DeepbookAllUpdatesCanceledData,
-  DeepbookAllUpdatesPlacedData,
-  DeepbookAllUpdatesModifiedData,
-  DeepbookAllUpdatesExpiredData,
 } from './types';
 
-function getEventSourceClass(): any {
+// Type definition for EventSource constructor
+interface EventSourceConstructor {
+  new (url: string, eventSourceInitDict?: { headers?: Record<string, string> }): EventSource;
+}
+
+function getEventSourceClass(): EventSourceConstructor {
   const globalObj =
     typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : null;
-  if (globalObj && (globalObj as any).EventSource) {
-    return (globalObj as any).EventSource;
+  if (globalObj && 'EventSource' in globalObj) {
+    return (globalObj as { EventSource: EventSourceConstructor }).EventSource;
   }
 
   try {
-    return require('eventsource');
-  } catch (e) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('eventsource') as EventSourceConstructor;
+  } catch {
     throw new Error(
       'EventSource is not available. In Node.js, make sure "eventsource" package is installed.'
     );
@@ -31,8 +30,15 @@ function getEventSourceClass(): any {
 
 const EventSourceClass = getEventSourceClass();
 
-interface EventHandler<T = any> {
+interface EventHandler<T = unknown> {
   (event: T): void;
+}
+
+/**
+ * Type guard to validate API key
+ */
+function isValidApiKey(apiKey: string | undefined): apiKey is string {
+  return typeof apiKey === 'string' && apiKey.length > 0;
 }
 
 // Type helper to get the event type based on stream type
@@ -66,7 +72,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
   private poolName: string;
   private baseUrl: string;
   private eventSource: EventSource | null = null;
-  private subscriptions: Map<string, EventHandler[]> = new Map();
+  private subscriptions: Map<string, Array<EventHandler<unknown>>> = new Map();
   private isConnected: boolean = false;
   private streamType: T;
 
@@ -100,7 +106,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
    * ```
    */
   constructor(apiKey: string | undefined, poolName: string, streamType: T, network: string = 'testnet') {
-    if (!apiKey) {
+    if (!isValidApiKey(apiKey)) {
       throw new Error('Surflux API key is required. Please provide a valid API key.');
     }
     this.apiKey = apiKey;
@@ -159,10 +165,10 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
 
       const globalObj =
         typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : null;
-      const isBrowser = globalObj && (globalObj as any).EventSource;
+      const isBrowser = globalObj && 'EventSource' in globalObj;
 
       if (isBrowser) {
-        this.eventSource = new EventSourceClass(SSE_URL) as any;
+        this.eventSource = new EventSourceClass(SSE_URL);
       } else {
         this.eventSource = new EventSourceClass(SSE_URL, {
           headers: {
@@ -170,7 +176,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
             'Cache-Control': 'no-cache',
             'User-Agent': '@surflux/sdk',
           },
-        }) as any;
+        });
       }
 
       if (this.eventSource) {
@@ -185,14 +191,14 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
             const deepbookEvent = JSON.parse(event.data) as StreamEventType<T>;
             this.handleEvent(deepbookEvent);
           } catch (error) {
-            console.error('Error parsing event:', error);
+            console.error('Error parsing event:', error instanceof Error ? error : String(error));
           }
         };
 
-        this.eventSource.onerror = (error: any) => {
+        this.eventSource.onerror = (error: Event) => {
           console.error('EventSource error:', error);
           if (!this.isConnected) {
-            reject(error);
+            reject(new Error('EventSource connection failed'));
           }
         };
       } else {
@@ -262,7 +268,10 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
           handler(event.data);
         }
       } catch (error) {
-        console.error(`Error in event handler for ${event.type}:`, error);
+        console.error(
+          `Error in event handler for ${event.type}:`,
+          error instanceof Error ? error : String(error)
+        );
       }
     });
   }
@@ -293,7 +302,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
    * });
    * ```
    */
-  on(eventType: AllowedEventType<T>, handler: EventHandler<any>): void {
+  on(eventType: AllowedEventType<T>, handler: EventHandler<unknown>): void {
     if (!this.subscriptions.has(eventType)) {
       this.subscriptions.set(eventType, []);
     }
@@ -345,7 +354,9 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
     if (!this.subscriptions.has('*')) {
       this.subscriptions.set('*', []);
     }
-    this.subscriptions.get('*')!.push(handler);
+    // Type assertion needed because handler accepts StreamEventType<T> but map stores EventHandler<unknown>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    this.subscriptions.get('*')!.push(handler as EventHandler<unknown>);
   }
 
   /**
@@ -359,7 +370,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
    * const trade = await client.waitFor('deepbook_live_trades', 5000);
    * ```
    */
-  waitFor<ET extends AllowedEventType<T>>(eventType: ET, timeout?: number): Promise<any> {
+  waitFor<ET extends AllowedEventType<T>>(eventType: ET, timeout?: number): Promise<unknown> {
     return new Promise((resolve, reject) => {
       const timeoutId = timeout
         ? setTimeout(() => {
@@ -368,7 +379,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
           }, timeout)
         : null;
 
-      const handler = (event: T) => {
+      const handler = (event: unknown) => {
         if (timeoutId) clearTimeout(timeoutId);
         this.off(eventType, handler);
         resolve(event);
