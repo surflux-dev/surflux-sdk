@@ -2,6 +2,9 @@
   "name": "@surflux/sdk",
   "version": "1.0.0",
   "description": "Type-safe Sui event streaming with Surflux integration",
+  "publishConfig": {
+    "access": "restricted"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -16,6 +19,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run build",
     "dev": "tsc --watch"
   },
