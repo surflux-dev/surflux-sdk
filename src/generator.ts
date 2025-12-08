@@ -23,7 +23,7 @@ function getRpcUrl(network: string): string {
 
 function suiTypeToTypeScript(type: SuiMoveNormalizedType, currentPackageId?: string): string {
   if (!type) {
-    return 'any';
+    return 'unknown';
   }
 
   if (typeof type === 'string') {
@@ -31,7 +31,7 @@ function suiTypeToTypeScript(type: SuiMoveNormalizedType, currentPackageId?: str
   }
 
   if (typeof type !== 'object') {
-    return 'any';
+    return 'unknown';
   }
 
   if ('Vector' in type && type.Vector) {
@@ -54,7 +54,7 @@ function suiTypeToTypeScript(type: SuiMoveNormalizedType, currentPackageId?: str
     return `T${type.TypeParameter}`;
   }
 
-  return 'any';
+  return 'unknown';
 }
 
 function mapPrimitiveType(type: string): string {
@@ -90,7 +90,7 @@ function mapPrimitiveType(type: string): string {
           return parts[parts.length - 1];
         }
       } catch {}
-      return 'any';
+      return 'unknown';
   }
 }
 
@@ -107,7 +107,7 @@ function handleMapType(
       currentPackageId
     )}>`;
   }
-  return 'Map<string, any>';
+  return 'Map<string, unknown>';
 }
 
 function mapStructType(
@@ -138,13 +138,13 @@ function mapStructType(
       return 'string';
     }
     if (module === 'balance' && name === 'Balance') {
-      return 'any';
+      return 'unknown';
     }
     if (module === 'transfer_policy' && name === 'TransferPolicy') {
-      return 'any';
+      return 'unknown';
     }
     if (module === 'transfer_policy' && name === 'TransferPolicyCap') {
-      return 'any';
+      return 'unknown';
     }
     if ((module === 'vec_map' && name === 'VecMap') || (module === 'table' && name === 'Table')) {
       return handleMapType(typeArguments, currentPackageId);
@@ -153,7 +153,7 @@ function mapStructType(
       if (typeArguments && typeArguments.length === 1) {
         return `Set<${suiTypeToTypeScript(typeArguments[0], currentPackageId)}>`;
       }
-      return 'Set<any>';
+      return 'Set<unknown>';
     }
   }
 
@@ -179,16 +179,17 @@ function processField(
 ): void {
   try {
     if (!fieldType) {
-      console.warn(`Warning: Field ${fieldName} has no type, using 'any'`);
-      fieldTypes.push(`  ${fieldName}: any;`);
+      console.warn(`Warning: Field ${fieldName} has no type, using 'unknown'`);
+      fieldTypes.push(`  ${fieldName}: unknown;`);
       return;
     }
 
     const tsType = suiTypeToTypeScript(fieldType, normalizedPackageId);
     fieldTypes.push(`  ${fieldName}: ${tsType};`);
-  } catch (error: any) {
-    console.warn(`Warning: Failed to process field ${fieldName}: ${error.message}`);
-    fieldTypes.push(`  ${fieldName}: any;`);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.warn(`Warning: Failed to process field ${fieldName}: ${errorMessage}`);
+    fieldTypes.push(`  ${fieldName}: unknown;`);
   }
 }
 
@@ -228,9 +229,9 @@ function generateExternalTypeDefinition(
   const knownTypes: Record<string, string> = {
     Bytes32: 'export type Bytes32 = number[]; // 32-byte array',
     ExternalAddress: 'export type ExternalAddress = number[]; // External address bytes',
-    T0: 'export type T0 = any; // Generic type parameter',
-    ConsumedVAAs: 'export interface ConsumedVAAs {\n  [key: string]: any;\n}',
-    UpgradeCap: 'export interface UpgradeCap {\n  [key: string]: any;\n}',
+    T0: 'export type T0 = unknown; // Generic type parameter',
+    ConsumedVAAs: 'export interface ConsumedVAAs {\n  [key: string]: unknown;\n}',
+    UpgradeCap: 'export interface UpgradeCap {\n  [key: string]: unknown;\n}',
   };
 
   if (knownTypes[typeName]) {
@@ -238,10 +239,10 @@ function generateExternalTypeDefinition(
   }
 
   if (struct) {
-    return `export type ${typeName} = any; // From ${struct.address}::${struct.module}::${struct.name}`;
+    return `export type ${typeName} = unknown; // From ${struct.address}::${struct.module}::${struct.name}`;
   }
 
-  return `export type ${typeName} = any; // External type - definition not available`;
+  return `export type ${typeName} = unknown; // External type - definition not available`;
 }
 
 export async function generateTypes(packageId: string, network: string): Promise<string> {
@@ -256,8 +257,9 @@ export async function generateTypes(packageId: string, network: string): Promise
     modules = await client.getNormalizedMoveModulesByPackage({
       package: normalizedPackageId,
     });
-  } catch (error: any) {
-    throw new Error(`Failed to fetch modules for package ${packageId}: ${error.message}`);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to fetch modules for package ${packageId}: ${errorMessage}`);
   }
 
   if (!modules || Object.keys(modules).length === 0) {

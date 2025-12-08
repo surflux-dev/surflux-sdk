@@ -87,8 +87,9 @@ ${existingExports.map((pkg) => `export * from './${pkg}';`).join('\n')}
       console.log(chalk.green('Types generated successfully!'));
       console.log(chalk.gray(`Output: ${packageOutputDir}`));
       console.log(chalk.gray(`Types: ${typesPath}`));
-    } catch (error: any) {
-      console.error(chalk.red('Error generating types:'), error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(chalk.red('Error generating types:'), errorMessage);
       process.exit(1);
     }
   });

@@ -103,7 +103,7 @@ export interface NFTToken {
   token_name?: string;
   description?: string;
   image_url?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   owner?: string;
   minted_at?: number;
 }
@@ -111,8 +111,8 @@ export interface NFTToken {
 export interface NFTMetadata {
   token_id: string;
   collection_id: string;
-  attributes?: Record<string, any>;
-  properties?: Record<string, any>;
+  attributes?: Record<string, unknown>;
+  properties?: Record<string, unknown>;
   image_url?: string;
   animation_url?: string;
   external_url?: string;
@@ -132,7 +132,7 @@ export interface GetNFTsForOwnerParams {
 
 export interface GetNFTsForCollectionParams {
   type: string; // Collection type (e.g., '0x...::module::Type')
-  fields?: Record<string, any>; // JSON object for filtering
+  fields?: Record<string, unknown>; // JSON object for filtering
   page?: number;
   per_page?: number;
 }

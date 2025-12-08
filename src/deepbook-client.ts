@@ -10,6 +10,13 @@ import {
 import { httpRequest } from './http-client';
 
 /**
+ * Type guard to validate API key
+ */
+function isValidApiKey(apiKey: string | undefined): apiKey is string {
+  return typeof apiKey === 'string' && apiKey.length > 0;
+}
+
+/**
  * Client for interacting with the Surflux Deepbook API.
  * Provides methods to query trading pools, order books, trades, and OHLCV data.
  */
@@ -23,8 +30,12 @@ export class DeepbookClient {
    * @param apiKey - Your Surflux API key
    * @param network - Network to use ('mainnet' or 'testnet')
    */
-  constructor(apiKey: string, network: string) {
-    this.apiKey = apiKey;
+  constructor(apiKey: string | undefined, network: string) {
+    if (!isValidApiKey(apiKey)) {
+      throw new Error('Surflux API key is required. Please provide a valid API key.');
+    }
+    const validatedApiKey: string = apiKey;
+    this.apiKey = validatedApiKey;
     this.baseUrl = network === 'mainnet' ? 'https://api.surflux.dev' : 'https://testnet-api.surflux.dev';
   }
 

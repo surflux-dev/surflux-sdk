@@ -6,18 +6,22 @@ function isNodeJS(): boolean {
   return typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
 }
 
+interface PathModule {
+  resolve: (path: string) => string;
+}
+
 function safePathResolve(pathStr: string): string {
   if (isBrowser() || !isNodeJS()) {
     return pathStr;
   }
   try {
-    let pathModule: any;
+    let pathModule: PathModule | null = null;
     if (typeof require !== 'undefined') {
-      pathModule = require('path');
+      pathModule = require('path') as PathModule;
     } else {
       try {
-        const requireFunc = eval('require');
-        pathModule = requireFunc('path');
+        const requireFunc = eval('require') as (module: string) => unknown;
+        pathModule = requireFunc('path') as PathModule;
       } catch {
         return pathStr;
       }
@@ -31,18 +35,22 @@ function safePathResolve(pathStr: string): string {
   return pathStr;
 }
 
+interface PathModuleWithJoin {
+  join: (...paths: string[]) => string;
+}
+
 function safePathJoin(...paths: string[]): string {
   if (isBrowser() || !isNodeJS()) {
     return paths.filter(Boolean).join('/').replace(/\/+/g, '/');
   }
   try {
-    let pathModule: any;
+    let pathModule: PathModuleWithJoin | null = null;
     if (typeof require !== 'undefined') {
-      pathModule = require('path');
+      pathModule = require('path') as PathModuleWithJoin;
     } else {
       try {
-        const requireFunc = eval('require');
-        pathModule = requireFunc('path');
+        const requireFunc = eval('require') as (module: string) => unknown;
+        pathModule = requireFunc('path') as PathModuleWithJoin;
       } catch {
         return paths.filter(Boolean).join('/').replace(/\/+/g, '/');
       }
@@ -56,18 +64,22 @@ function safePathJoin(...paths: string[]): string {
   return paths.filter(Boolean).join('/').replace(/\/+/g, '/');
 }
 
+interface FsModule {
+  existsSync: (path: string) => boolean;
+}
+
 function safeFsExistsSync(filePath: string): boolean {
   if (isBrowser() || !isNodeJS()) {
     return false;
   }
   try {
-    let fsModule: any;
+    let fsModule: FsModule | null = null;
     if (typeof require !== 'undefined') {
-      fsModule = require('fs-extra');
+      fsModule = require('fs-extra') as FsModule;
     } else {
       try {
-        const requireFunc = eval('require');
-        fsModule = requireFunc('fs-extra');
+        const requireFunc = eval('require') as (module: string) => unknown;
+        fsModule = requireFunc('fs-extra') as FsModule;
       } catch {
         return false;
       }
@@ -81,18 +93,22 @@ function safeFsExistsSync(filePath: string): boolean {
   return false;
 }
 
-function safeFsReadJsonSync(filePath: string): any {
+interface FsModuleWithReadJson {
+  readJsonSync: (path: string) => unknown;
+}
+
+function safeFsReadJsonSync(filePath: string): unknown {
   if (isBrowser() || !isNodeJS()) {
     return null;
   }
   try {
-    let fsModule: any;
+    let fsModule: FsModuleWithReadJson | null = null;
     if (typeof require !== 'undefined') {
-      fsModule = require('fs-extra');
+      fsModule = require('fs-extra') as FsModuleWithReadJson;
     } else {
       try {
-        const requireFunc = eval('require');
-        fsModule = requireFunc('fs-extra');
+        const requireFunc = eval('require') as (module: string) => unknown;
+        fsModule = requireFunc('fs-extra') as FsModuleWithReadJson;
       } catch {
         return null;
       }
@@ -106,15 +122,23 @@ function safeFsReadJsonSync(filePath: string): any {
   return null;
 }
 
-function getEventSourceClass(): any {
+interface EventSourceConstructor {
+  new (url: string, eventSourceInitDict?: { headers?: Record<string, string> }): EventSource;
+}
+
+interface GlobalWithEventSource {
+  EventSource: EventSourceConstructor;
+}
+
+function getEventSourceClass(): EventSourceConstructor {
   const globalObj =
     typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : null;
-  if (globalObj && (globalObj as any).EventSource) {
-    return (globalObj as any).EventSource;
+  if (globalObj && 'EventSource' in globalObj) {
+    return (globalObj as GlobalWithEventSource).EventSource;
   }
 
   try {
-    return require('eventsource');
+    return require('eventsource') as EventSourceConstructor;
   } catch (e) {
     throw new Error(
       'EventSource is not available. In Node.js, make sure "eventsource" package is installed.'
@@ -133,7 +157,7 @@ interface SurfluxEvent {
     event_index?: number;
     sender?: string;
     event_type?: string;
-    contents: any;
+    contents: unknown;
   };
 }
 
@@ -146,7 +170,7 @@ interface SurfluxPackageEvent {
     event_index: number;
     sender: string;
     event_type: string;
-    contents: any;
+    contents: unknown;
   };
 }
 
@@ -159,11 +183,11 @@ interface FullPackageEvent {
     event_index: number;
     sender: string;
     event_type: string;
-    contents: any;
+    contents: unknown;
   };
 }
 
-interface EventHandler<T = any> {
+interface EventHandler<T = unknown> {
   (event: T): void;
 }
 
@@ -172,7 +196,7 @@ export class SurfluxPackageEventsClient {
   private packageId: string;
   private network: string;
   private eventSource: EventSource | null = null;
-  private subscriptions: Map<string, EventHandler[]> = new Map();
+  private subscriptions: Map<string, EventHandler<unknown>[]> = new Map();
   private isConnected: boolean = false;
   private generatedTypesPath: string;
 
@@ -201,10 +225,10 @@ export class SurfluxPackageEventsClient {
 
       const globalObj =
         typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : null;
-      const isBrowser = globalObj && (globalObj as any).EventSource;
+      const isBrowser = globalObj && 'EventSource' in globalObj;
 
       if (isBrowser) {
-        this.eventSource = new EventSourceClass(SSE_URL) as any;
+        this.eventSource = new EventSourceClass(SSE_URL);
       } else {
         this.eventSource = new EventSourceClass(SSE_URL, {
           headers: {
@@ -212,7 +236,7 @@ export class SurfluxPackageEventsClient {
             'Cache-Control': 'no-cache',
             'User-Agent': '@surflux/sdk',
           },
-        }) as any;
+        });
       }
 
       if (this.eventSource) {
@@ -249,10 +273,10 @@ export class SurfluxPackageEventsClient {
           }
         };
 
-        this.eventSource.onerror = (error: any) => {
+        this.eventSource.onerror = (error: Event) => {
           console.error('EventSource error:', error);
           if (!this.isConnected) {
-            reject(error);
+            reject(new Error('EventSource connection failed'));
           }
         };
       } else {
@@ -316,9 +340,9 @@ export class SurfluxPackageEventsClient {
       try {
         if (isWildcard) {
           if (fullPackageEvent) {
-            handler(fullPackageEvent as any);
+            handler(fullPackageEvent as Parameters<typeof handler>[0]);
           } else {
-            handler(event as any);
+            handler(event as Parameters<typeof handler>[0]);
           }
         } else {
           handler(event.data.contents || event.data);
@@ -335,11 +359,11 @@ export class SurfluxPackageEventsClient {
     return regex.test(eventType);
   }
 
-  on<T = any>(eventType: string, handler: EventHandler<T>): void {
+  on<T = unknown>(eventType: string, handler: EventHandler<T>): void {
     if (!this.subscriptions.has(eventType)) {
       this.subscriptions.set(eventType, []);
     }
-    this.subscriptions.get(eventType)!.push(handler);
+    this.subscriptions.get(eventType)!.push(handler as EventHandler<unknown>);
   }
 
   off(eventType: string, handler?: EventHandler): void {
@@ -361,29 +385,29 @@ export class SurfluxPackageEventsClient {
   }
 
   onAll(handler: EventHandler<SurfluxEvent>): void {
-    this.on('*', handler);
+    this.on('*', handler as EventHandler<unknown>);
   }
 
-  waitFor<T = any>(eventType: string, timeout?: number): Promise<T> {
+  waitFor<T = unknown>(eventType: string, timeout?: number): Promise<T> {
     return new Promise((resolve, reject) => {
+      const handler: EventHandler<T> = (event: T) => {
+        if (timeoutId) clearTimeout(timeoutId);
+        this.off(eventType, handler as EventHandler<unknown>);
+        resolve(event);
+      };
+
       const timeoutId = timeout
         ? setTimeout(() => {
-            this.off(eventType, handler);
+            this.off(eventType, handler as EventHandler<unknown>);
             reject(new Error(`Timeout waiting for event: ${eventType}`));
           }, timeout)
         : null;
-
-      const handler = (event: T) => {
-        if (timeoutId) clearTimeout(timeoutId);
-        this.off(eventType, handler);
-        resolve(event);
-      };
 
       this.on(eventType, handler);
     });
   }
 
-  onEvent<T = any>(eventTypeName: string, handler: EventHandler<T>): void {
+  onEvent<T = unknown>(eventTypeName: string, handler: EventHandler<T>): void {
     if (isBrowser()) {
       this.on(eventTypeName, handler);
       return;
@@ -405,7 +429,12 @@ export class SurfluxPackageEventsClient {
       if (safeFsExistsSync(packageInfoPath)) {
         const packageInfo = safeFsReadJsonSync(packageInfoPath);
 
-        if (packageInfo && packageInfo.packageId) {
+        if (
+          packageInfo &&
+          typeof packageInfo === 'object' &&
+          'packageId' in packageInfo &&
+          typeof packageInfo.packageId === 'string'
+        ) {
           const typesPath = safePathJoin(resolvedPath, 'types.ts');
           if (safeFsExistsSync(typesPath)) {
             const fullEventTypePattern = `${packageInfo.packageId}::*::${eventTypeName}`;
@@ -423,7 +452,7 @@ export class SurfluxPackageEventsClient {
     this.on(eventTypeName, handler);
   }
 
-  createTypedHandlers<T extends Record<string, any>>(eventHandlers: {
+  createTypedHandlers<T extends Record<string, unknown>>(eventHandlers: {
     [K in keyof T]?: (event: T[K]) => void;
   }): void {
     for (const [eventName, handler] of Object.entries(eventHandlers)) {
