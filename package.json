@@ -1,5 +1,5 @@
 {
-  "name": "@surflux-sdk",
+  "name": "@surflux/sdk",
   "version": "1.0.0",
   "description": "Type-safe Sui event streaming with Surflux integration",
   "main": "dist/index.js",
