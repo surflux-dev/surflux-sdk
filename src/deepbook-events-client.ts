@@ -99,7 +99,10 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
    * );
    * ```
    */
-  constructor(apiKey: string, poolName: string, streamType: T, network: string = 'testnet') {
+  constructor(apiKey: string | undefined, poolName: string, streamType: T, network: string = 'testnet') {
+    if (!apiKey) {
+      throw new Error('Surflux API key is required. Please provide a valid API key.');
+    }
     this.apiKey = apiKey;
     this.poolName = poolName;
     this.streamType = streamType;
