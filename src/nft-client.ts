@@ -8,13 +8,9 @@ import {
   GetCollectionHoldersParams,
 } from './types';
 import { httpRequest } from './http-client';
-
-/**
- * Type guard to validate API key
- */
-function isValidApiKey(apiKey: string | undefined): apiKey is string {
-  return typeof apiKey === 'string' && apiKey.length > 0;
-}
+import { isValidApiKey } from './utils';
+import { getApiBaseUrl } from './constants';
+import { buildQueryParams } from './query-utils';
 
 /**
  * Client for interacting with the Surflux NFT API.
@@ -34,9 +30,8 @@ export class NFTClient {
     if (!isValidApiKey(apiKey)) {
       throw new Error('Surflux API key is required. Please provide a valid API key.');
     }
-    const validatedApiKey: string = apiKey;
-    this.apiKey = validatedApiKey;
-    this.baseUrl = network === 'mainnet' ? 'https://api.surflux.dev' : 'https://testnet-api.surflux.dev';
+    this.apiKey = apiKey;
+    this.baseUrl = getApiBaseUrl(network);
   }
 
   /**
@@ -93,12 +88,11 @@ export class NFTClient {
    */
   async getNFTsForOwner(params: GetNFTsForOwnerParams): Promise<NftsResponseDto> {
     const { address, collections, page, per_page } = params;
-    const queryParams: Record<string, unknown> = {};
-    if (collections && collections.length > 0) {
-      queryParams.collections = collections;
-    }
-    if (page !== undefined) queryParams.page = page;
-    if (per_page !== undefined) queryParams.perPage = per_page;
+    const queryParams = buildQueryParams({
+      collections: collections && collections.length > 0 ? collections : undefined,
+      page,
+      perPage: per_page,
+    });
 
     return this.request<NftsResponseDto>(`/address/${address}`, queryParams);
   }
@@ -124,12 +118,11 @@ export class NFTClient {
    */
   async getNFTsForCollection(params: GetNFTsForCollectionParams): Promise<NftsResponseDto> {
     const { type, fields, page, per_page } = params;
-    const queryParams: Record<string, unknown> = {};
-    if (fields) {
-      queryParams.fields = fields;
-    }
-    if (page !== undefined) queryParams.page = page;
-    if (per_page !== undefined) queryParams.perPage = per_page;
+    const queryParams = buildQueryParams({
+      fields,
+      page,
+      perPage: per_page,
+    });
 
     const encodedType = encodeURIComponent(type);
 
@@ -156,9 +149,10 @@ export class NFTClient {
    */
   async getCollectionHolders(params: GetCollectionHoldersParams): Promise<CollectionHoldersDto> {
     const { type, page, per_page } = params;
-    const queryParams: Record<string, unknown> = {};
-    if (page !== undefined) queryParams.page = page;
-    if (per_page !== undefined) queryParams.perPage = per_page;
+    const queryParams = buildQueryParams({
+      page,
+      perPage: per_page,
+    });
 
     const encodedType = encodeURIComponent(type);
 

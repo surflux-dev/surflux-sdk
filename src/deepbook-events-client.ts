@@ -5,41 +5,16 @@ import {
   ReceiveAllUpdatesParams,
   ReceiveLiveTradesParams,
 } from './types';
-
-// Type definition for EventSource constructor
-interface EventSourceConstructor {
-  new (url: string, eventSourceInitDict?: { headers?: Record<string, string> }): EventSource;
-}
-
-function getEventSourceClass(): EventSourceConstructor {
-  const globalObj =
-    typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : null;
-  if (globalObj && 'EventSource' in globalObj) {
-    return (globalObj as { EventSource: EventSourceConstructor }).EventSource;
-  }
-
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require('eventsource') as EventSourceConstructor;
-  } catch {
-    throw new Error(
-      'EventSource is not available. In Node.js, make sure "eventsource" package is installed.'
-    );
-  }
-}
+import {
+  getEventSourceClass,
+  isValidApiKey,
+  isEventSourceAvailable,
+  matchesPattern,
+  type EventHandler,
+} from './utils';
+import { getFluxBaseUrl } from './constants';
 
 const EventSourceClass = getEventSourceClass();
-
-interface EventHandler<T = unknown> {
-  (event: T): void;
-}
-
-/**
- * Type guard to validate API key
- */
-function isValidApiKey(apiKey: string | undefined): apiKey is string {
-  return typeof apiKey === 'string' && apiKey.length > 0;
-}
 
 // Type helper to get the event type based on stream type
 type StreamEventType<T extends DeepbookStreamType> = T extends DeepbookStreamType.ALL_UPDATES
@@ -112,7 +87,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
     this.apiKey = apiKey;
     this.poolName = poolName;
     this.streamType = streamType;
-    this.baseUrl = network === 'mainnet' ? 'https://flux.surflux.dev' : 'https://testnet-flux.surflux.dev';
+    this.baseUrl = getFluxBaseUrl(network);
   }
 
   /**
@@ -163,11 +138,9 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
         this.poolName
       )}/${endpoint}?${queryParams.join('&')}`;
 
-      const globalObj =
-        typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : null;
-      const isBrowser = globalObj && 'EventSource' in globalObj;
+      const isBrowserEnv = isEventSourceAvailable();
 
-      if (isBrowser) {
+      if (isBrowserEnv) {
         this.eventSource = new EventSourceClass(SSE_URL);
       } else {
         this.eventSource = new EventSourceClass(SSE_URL, {
@@ -253,7 +226,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
 
     for (const [pattern, patternHandlers] of this.subscriptions.entries()) {
       if (pattern === '*') continue;
-      if (pattern.includes('*') && this.matchesPattern(event.type, pattern)) {
+      if (pattern.includes('*') && matchesPattern(event.type, pattern)) {
         patternHandlers.forEach((handler) => {
           handlerEntries.push({ handler, isWildcard: false });
         });
@@ -274,12 +247,6 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
         );
       }
     });
-  }
-
-  private matchesPattern(eventType: string, pattern: string): boolean {
-    const regexPattern = pattern.replace(/\*/g, '.*');
-    const regex = new RegExp(`^${regexPattern}$`);
-    return regex.test(eventType);
   }
 
   /**

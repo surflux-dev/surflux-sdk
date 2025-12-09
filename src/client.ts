@@ -1,153 +1,18 @@
-function isBrowser(): boolean {
-  return typeof window !== 'undefined' && typeof window.document !== 'undefined';
-}
-
-function isNodeJS(): boolean {
-  return typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
-}
-
-interface PathModule {
-  resolve: (path: string) => string;
-}
-
-function safePathResolve(pathStr: string): string {
-  if (isBrowser() || !isNodeJS()) {
-    return pathStr;
-  }
-  try {
-    let pathModule: PathModule | null = null;
-    if (typeof require !== 'undefined') {
-      pathModule = require('path') as PathModule;
-    } else {
-      try {
-        const requireFunc = eval('require') as (module: string) => unknown;
-        pathModule = requireFunc('path') as PathModule;
-      } catch {
-        return pathStr;
-      }
-    }
-    if (pathModule && pathModule.resolve && typeof pathModule.resolve === 'function') {
-      return pathModule.resolve(pathStr);
-    }
-  } catch (error) {
-    console.warn('Failed to resolve path, using as-is:', error);
-  }
-  return pathStr;
-}
-
-interface PathModuleWithJoin {
-  join: (...paths: string[]) => string;
-}
-
-function safePathJoin(...paths: string[]): string {
-  if (isBrowser() || !isNodeJS()) {
-    return paths.filter(Boolean).join('/').replace(/\/+/g, '/');
-  }
-  try {
-    let pathModule: PathModuleWithJoin | null = null;
-    if (typeof require !== 'undefined') {
-      pathModule = require('path') as PathModuleWithJoin;
-    } else {
-      try {
-        const requireFunc = eval('require') as (module: string) => unknown;
-        pathModule = requireFunc('path') as PathModuleWithJoin;
-      } catch {
-        return paths.filter(Boolean).join('/').replace(/\/+/g, '/');
-      }
-    }
-    if (pathModule && pathModule.join && typeof pathModule.join === 'function') {
-      return pathModule.join(...paths);
-    }
-  } catch (error) {
-    console.warn('Failed to join path, using fallback:', error);
-  }
-  return paths.filter(Boolean).join('/').replace(/\/+/g, '/');
-}
-
-interface FsModule {
-  existsSync: (path: string) => boolean;
-}
-
-function safeFsExistsSync(filePath: string): boolean {
-  if (isBrowser() || !isNodeJS()) {
-    return false;
-  }
-  try {
-    let fsModule: FsModule | null = null;
-    if (typeof require !== 'undefined') {
-      fsModule = require('fs-extra') as FsModule;
-    } else {
-      try {
-        const requireFunc = eval('require') as (module: string) => unknown;
-        fsModule = requireFunc('fs-extra') as FsModule;
-      } catch {
-        return false;
-      }
-    }
-    if (fsModule && fsModule.existsSync && typeof fsModule.existsSync === 'function') {
-      return fsModule.existsSync(filePath);
-    }
-  } catch {
-    return false;
-  }
-  return false;
-}
-
-interface FsModuleWithReadJson {
-  readJsonSync: (path: string) => unknown;
-}
-
-function safeFsReadJsonSync(filePath: string): unknown {
-  if (isBrowser() || !isNodeJS()) {
-    return null;
-  }
-  try {
-    let fsModule: FsModuleWithReadJson | null = null;
-    if (typeof require !== 'undefined') {
-      fsModule = require('fs-extra') as FsModuleWithReadJson;
-    } else {
-      try {
-        const requireFunc = eval('require') as (module: string) => unknown;
-        fsModule = requireFunc('fs-extra') as FsModuleWithReadJson;
-      } catch {
-        return null;
-      }
-    }
-    if (fsModule && fsModule.readJsonSync && typeof fsModule.readJsonSync === 'function') {
-      return fsModule.readJsonSync(filePath);
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
-
-interface EventSourceConstructor {
-  new (url: string, eventSourceInitDict?: { headers?: Record<string, string> }): EventSource;
-}
-
-interface GlobalWithEventSource {
-  EventSource: EventSourceConstructor;
-}
-
-function getEventSourceClass(): EventSourceConstructor {
-  const globalObj =
-    typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : null;
-  if (globalObj && 'EventSource' in globalObj) {
-    return (globalObj as GlobalWithEventSource).EventSource;
-  }
-
-  try {
-    return require('eventsource') as EventSourceConstructor;
-  } catch (e) {
-    throw new Error(
-      'EventSource is not available. In Node.js, make sure "eventsource" package is installed.'
-    );
-  }
-}
+import {
+  getEventSourceClass,
+  isBrowser,
+  isEventSourceAvailable,
+  matchesPattern,
+  type EventHandler,
+} from './utils';
+import { safePathResolve, safePathJoin, safeFsExistsSync, safeFsReadJsonSync } from './fs-utils';
+import { getFluxBaseUrl } from './constants';
 
 const EventSourceClass = getEventSourceClass();
 
+/**
+ * Base event interface for Surflux package events
+ */
 interface SurfluxEvent {
   type: string;
   timestamp_ms?: number;
@@ -161,6 +26,9 @@ interface SurfluxEvent {
   };
 }
 
+/**
+ * Package event received from Surflux event stream
+ */
 interface SurfluxPackageEvent {
   type: 'package_event';
   timestamp_ms: number;
@@ -174,6 +42,9 @@ interface SurfluxPackageEvent {
   };
 }
 
+/**
+ * Full package event with all metadata
+ */
 interface FullPackageEvent {
   type: 'package_event';
   timestamp_ms: number;
@@ -187,18 +58,18 @@ interface FullPackageEvent {
   };
 }
 
-interface EventHandler<T = unknown> {
-  (event: T): void;
-}
-
+/**
+ * Client for receiving real-time package events from Surflux.
+ * Provides methods to subscribe to events, handle event streams, and manage connections.
+ */
 export class SurfluxPackageEventsClient {
-  private apiKey: string;
-  private packageId: string;
-  private network: string;
+  private readonly apiKey: string;
+  private readonly packageId: string;
+  private readonly network: string;
+  private readonly generatedTypesPath: string;
   private eventSource: EventSource | null = null;
   private subscriptions: Map<string, EventHandler<unknown>[]> = new Map();
   private isConnected: boolean = false;
-  private generatedTypesPath: string;
 
   constructor(
     apiKey: string,
@@ -219,15 +90,12 @@ export class SurfluxPackageEventsClient {
         return;
       }
 
-      const baseUrl =
-        this.network === 'mainnet' ? 'https://flux.surflux.dev' : 'https://testnet-flux.surflux.dev';
+      const baseUrl = getFluxBaseUrl(this.network);
       const SSE_URL = `${baseUrl}/events?api-key=${this.apiKey}`;
 
-      const globalObj =
-        typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : null;
-      const isBrowser = globalObj && 'EventSource' in globalObj;
+      const isBrowserEnv = isEventSourceAvailable();
 
-      if (isBrowser) {
+      if (isBrowserEnv) {
         this.eventSource = new EventSourceClass(SSE_URL);
       } else {
         this.eventSource = new EventSourceClass(SSE_URL, {
@@ -329,7 +197,7 @@ export class SurfluxPackageEventsClient {
 
     for (const [pattern, patternHandlers] of this.subscriptions.entries()) {
       if (pattern === '*') continue;
-      if (pattern.includes('*') && this.matchesPattern(event.type, pattern)) {
+      if (pattern.includes('*') && matchesPattern(event.type, pattern)) {
         patternHandlers.forEach((handler) => {
           handlerEntries.push({ handler, isWildcard: false });
         });
@@ -351,12 +219,6 @@ export class SurfluxPackageEventsClient {
         console.error(`Error in event handler for ${event.type}:`, error);
       }
     });
-  }
-
-  private matchesPattern(eventType: string, pattern: string): boolean {
-    const regexPattern = pattern.replace(/\*/g, '.*');
-    const regex = new RegExp(`^${regexPattern}$`);
-    return regex.test(eventType);
   }
 
   on<T = unknown>(eventType: string, handler: EventHandler<T>): void {
