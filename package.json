@@ -15,11 +15,10 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "sui-event-catcher": "./dist/cli.js"
+    "surflux-sdk": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "chmod +x dist/cli.js || true",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build",
     "dev": "tsc --watch"
