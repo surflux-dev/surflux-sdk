@@ -64,31 +64,6 @@ export function createEventClient(apiKey: string, typesPath?: string): SurfluxPa
         JSON.stringify({ packageId, network, generatedAt: new Date().toISOString() }, null, 2)
       );
 
-      const rootIndexPath = path.join(baseOutputDir, 'index.ts');
-      let existingExports: string[] = [];
-
-      if (await fs.pathExists(rootIndexPath)) {
-        const existingContent = await fs.readFile(rootIndexPath, 'utf-8');
-        const exportMatches = existingContent.match(/export \* from ['"]\.\/([^'"]+)['"]/g);
-        if (exportMatches) {
-          existingExports = exportMatches
-            .map((match) => {
-              const packageMatch = match.match(/\.\/([^'"]+)/);
-              return packageMatch ? packageMatch[1] : '';
-            })
-            .filter(Boolean);
-        }
-      }
-
-      if (!existingExports.includes(normalizedPackageId)) {
-        existingExports.push(normalizedPackageId);
-      }
-
-      const rootIndexContent = `// Auto-generated root index - exports all packages
-${existingExports.map((pkg) => `export * from './${pkg}';`).join('\n')}
-`;
-      await fs.writeFile(rootIndexPath, rootIndexContent);
-
       console.log(chalk.green('Types generated successfully!'));
       console.log(chalk.gray(`Output: ${packageOutputDir}`));
       console.log(chalk.gray(`Types: ${typesPath}`));
