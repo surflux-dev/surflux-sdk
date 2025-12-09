@@ -252,6 +252,22 @@ export interface DeepbookAllUpdatesExpiredData {
   timestamp: number;
 }
 
+/**
+ * Full package event with all metadata
+ */
+export interface FullPackageEvent {
+  type: 'package_event';
+  timestamp_ms: number;
+  checkpoint_id: number;
+  tx_hash: string;
+  data: {
+    event_index: number;
+    sender: string;
+    event_type: string;
+    contents: unknown;
+  };
+}
+
 export interface DeepbookEventBase {
   type: DeepbookEventTypeString;
   timestamp_ms: number;

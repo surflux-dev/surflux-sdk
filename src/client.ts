@@ -41,23 +41,6 @@ interface SurfluxPackageEvent {
     contents: unknown;
   };
 }
-
-/**
- * Full package event with all metadata
- */
-interface FullPackageEvent {
-  type: 'package_event';
-  timestamp_ms: number;
-  checkpoint_id: number;
-  tx_hash: string;
-  data: {
-    event_index: number;
-    sender: string;
-    event_type: string;
-    contents: unknown;
-  };
-}
-
 /**
  * Client for receiving real-time package events from Surflux.
  * Provides methods to subscribe to events, handle event streams, and manage connections.
