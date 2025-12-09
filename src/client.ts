@@ -13,7 +13,7 @@ const EventSourceClass = getEventSourceClass();
 /**
  * Base event interface for Surflux package events
  */
-interface SurfluxEvent {
+export interface SurfluxEvent {
   type: string;
   timestamp_ms?: number;
   checkpoint_id?: number;
@@ -229,7 +229,7 @@ export class SurfluxPackageEventsClient {
     }
   }
 
-  onAll(handler: EventHandler<SurfluxEvent>): void {
+  onAll<T = SurfluxEvent>(handler: EventHandler<T>): void {
     this.on('*', handler as EventHandler<unknown>);
   }
 
