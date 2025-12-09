@@ -15,7 +15,7 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "sui-event-catcher": "./dist/cli.js"
+    "surflux-sdk": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
