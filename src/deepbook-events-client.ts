@@ -317,12 +317,10 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
    * });
    * ```
    */
-  onAll(handler: EventHandler<StreamEventType<T>>): void {
+  onAll<U = StreamEventType<T>>(handler: EventHandler<U>): void {
     if (!this.subscriptions.has('*')) {
       this.subscriptions.set('*', []);
     }
-    // Type assertion needed because handler accepts StreamEventType<T> but map stores EventHandler<unknown>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.subscriptions.get('*')!.push(handler as EventHandler<unknown>);
   }
 

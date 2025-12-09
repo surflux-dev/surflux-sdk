@@ -5,7 +5,13 @@ import {
   matchesPattern,
   type EventHandler,
 } from './utils';
-import { safePathResolve, safePathJoin, safeFsExistsSync, safeFsReadJsonSync } from './fs-utils';
+import {
+  safePathResolve,
+  safePathJoin,
+  safeFsExistsSync,
+  safeFsReadJsonSync,
+  safeFsIsDirectory,
+} from './fs-utils';
 import { getFluxBaseUrl } from './constants';
 
 const EventSourceClass = getEventSourceClass();
@@ -265,10 +271,17 @@ export class SurfluxPackageEventsClient {
         return;
       }
 
-      const packageInfoPath = safePathJoin(resolvedPath, 'package-info.json');
-      if (!packageInfoPath) {
-        this.on(eventTypeName, handler);
-        return;
+      let packageInfoPath = safePathJoin(resolvedPath, 'package-info.json');
+      let typesBasePath = resolvedPath;
+
+      if (!safeFsExistsSync(packageInfoPath) && safeFsIsDirectory(resolvedPath)) {
+        const normalizedPackageId = this.packageId.replace(/^0x/, '');
+        const packageDirPath = safePathJoin(resolvedPath, normalizedPackageId);
+
+        if (safeFsIsDirectory(packageDirPath)) {
+          packageInfoPath = safePathJoin(packageDirPath, 'package-info.json');
+          typesBasePath = packageDirPath;
+        }
       }
 
       if (safeFsExistsSync(packageInfoPath)) {
@@ -280,8 +293,11 @@ export class SurfluxPackageEventsClient {
           'packageId' in packageInfo &&
           typeof packageInfo.packageId === 'string'
         ) {
-          const typesPath = safePathJoin(resolvedPath, 'types.ts');
-          if (safeFsExistsSync(typesPath)) {
+          const indexPath = safePathJoin(typesBasePath, 'index.ts');
+          const typesPath = safePathJoin(typesBasePath, 'types.ts');
+          const hasTypes = safeFsExistsSync(indexPath) || safeFsExistsSync(typesPath);
+
+          if (hasTypes) {
             const fullEventTypePattern = `${packageInfo.packageId}::*::${eventTypeName}`;
             this.on(fullEventTypePattern, handler);
           }

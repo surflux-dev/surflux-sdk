@@ -16,6 +16,14 @@ interface FsModuleWithReadJson {
   readJsonSync: (path: string) => unknown;
 }
 
+interface FsModuleWithStat {
+  statSync: (path: string) => { isDirectory: () => boolean };
+}
+
+interface FsModuleWithReadDir {
+  readdirSync: (path: string) => string[];
+}
+
 /**
  * Safely requires a Node.js module, handling both require and eval scenarios
  */
@@ -101,4 +109,37 @@ export function safeFsReadJsonSync(filePath: string): unknown {
     // Silently fail in browser or if module is not available
   }
   return null;
+}
+
+/**
+ * Safely checks if a path is a directory using Node.js fs-extra module, returns false in browser environments
+ */
+export function safeFsIsDirectory(filePath: string): boolean {
+  if (isBrowser() || !isNodeJS()) {
+    return false;
+  }
+  try {
+    const fsModule = safeRequire('fs-extra') as FsModuleWithStat | null;
+    if (fsModule?.statSync && typeof fsModule.statSync === 'function') {
+      const stats = fsModule.statSync(filePath);
+      return stats.isDirectory();
+    }
+  } catch {}
+  return false;
+}
+
+/**
+ * Safely reads directory contents using Node.js fs-extra module, returns empty array in browser environments
+ */
+export function safeFsReadDirSync(dirPath: string): string[] {
+  if (isBrowser() || !isNodeJS()) {
+    return [];
+  }
+  try {
+    const fsModule = safeRequire('fs-extra') as FsModuleWithReadDir | null;
+    if (fsModule?.readdirSync && typeof fsModule.readdirSync === 'function') {
+      return fsModule.readdirSync(dirPath);
+    }
+  } catch {}
+  return [];
 }
