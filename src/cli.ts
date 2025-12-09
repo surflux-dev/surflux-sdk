@@ -36,19 +36,24 @@ program
       const indexPath = path.join(packageOutputDir, 'index.ts');
       const indexContent = `// Re-export types and client for convenience
 export * from './types';
-export { EventClient } from '@surflux/sdk';
+export { SurfluxPackageEventsClient } from '@surflux/sdk';
 
 // Helper to create a typed client instance
-import { EventClient } from '@surflux/sdk';
+import { SurfluxPackageEventsClient } from '@surflux/sdk';
 import packageInfo from './package-info.json';
 
 /**
- * Create an EventClient instance for this package
+ * Create a SurfluxPackageEventsClient instance for this package
  * @param apiKey Your Surflux API key
  * @param typesPath Optional path to the generated types directory (defaults to current directory)
  */
-export function createEventClient(apiKey: string, typesPath?: string): EventClient {
-  return new EventClient(apiKey, packageInfo.packageId, typesPath || __dirname);
+export function createEventClient(apiKey: string, typesPath?: string): SurfluxPackageEventsClient {
+  return new SurfluxPackageEventsClient(
+    apiKey,
+    packageInfo.packageId,
+    typesPath || __dirname,
+    packageInfo.network
+  );
 }
 `;
       await fs.writeFile(indexPath, indexContent);
