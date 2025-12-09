@@ -8,13 +8,9 @@ import {
   GetOHLCVParams,
 } from './types';
 import { httpRequest } from './http-client';
-
-/**
- * Type guard to validate API key
- */
-function isValidApiKey(apiKey: string | undefined): apiKey is string {
-  return typeof apiKey === 'string' && apiKey.length > 0;
-}
+import { isValidApiKey } from './utils';
+import { getApiBaseUrl } from './constants';
+import { buildQueryParams } from './query-utils';
 
 /**
  * Client for interacting with the Surflux Deepbook API.
@@ -34,9 +30,8 @@ export class DeepbookClient {
     if (!isValidApiKey(apiKey)) {
       throw new Error('Surflux API key is required. Please provide a valid API key.');
     }
-    const validatedApiKey: string = apiKey;
-    this.apiKey = validatedApiKey;
-    this.baseUrl = network === 'mainnet' ? 'https://api.surflux.dev' : 'https://testnet-api.surflux.dev';
+    this.apiKey = apiKey;
+    this.baseUrl = getApiBaseUrl(network);
   }
 
   /**
@@ -92,10 +87,7 @@ export class DeepbookClient {
    */
   async getTrades(params: GetTradesParams): Promise<Trade[]> {
     const { pool_name, from, to, limit } = params;
-    const queryParams: Record<string, unknown> = {};
-    if (from !== undefined) queryParams.from = from;
-    if (to !== undefined) queryParams.to = to;
-    if (limit !== undefined) queryParams.limit = limit;
+    const queryParams = buildQueryParams({ from, to, limit });
 
     return this.request<Trade[]>(`/${pool_name}/trades`, queryParams);
   }
@@ -118,8 +110,7 @@ export class DeepbookClient {
    */
   async getOrderBook(params: GetOrderBookParams): Promise<OrderBookDepth> {
     const { pool_name, limit } = params;
-    const queryParams: Record<string, unknown> = {};
-    if (limit !== undefined) queryParams.limit = limit;
+    const queryParams = buildQueryParams({ limit });
 
     return this.request<OrderBookDepth>(`/${pool_name}/order-book-depth`, queryParams);
   }
@@ -148,10 +139,7 @@ export class DeepbookClient {
    */
   async getOHLCV(params: GetOHLCVParams): Promise<OHLCVCandle[]> {
     const { pool_name, timeframe, from, to, limit } = params;
-    const queryParams: Record<string, unknown> = {};
-    if (from !== undefined) queryParams.from = from;
-    if (to !== undefined) queryParams.to = to;
-    if (limit !== undefined) queryParams.limit = limit;
+    const queryParams = buildQueryParams({ from, to, limit });
 
     return this.request<OHLCVCandle[]>(`/${pool_name}/ohlcv/${timeframe}`, queryParams);
   }

@@ -34,7 +34,6 @@ export async function httpRequest<T = unknown>(
       });
     }
     finalUrl = urlObj.toString();
-    console.log(finalUrl);
   } else {
     const searchParams = new URLSearchParams();
     searchParams.set('api-key', apiKey);

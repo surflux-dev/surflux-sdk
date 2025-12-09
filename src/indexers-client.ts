@@ -1,13 +1,7 @@
 import { SurfluxNetwork } from './types';
 import { DeepbookClient } from './deepbook-client';
 import { NFTClient } from './nft-client';
-
-/**
- * Type guard to validate API key
- */
-function isValidApiKey(apiKey: string | undefined): apiKey is string {
-  return typeof apiKey === 'string' && apiKey.length > 0;
-}
+import { isValidApiKey } from './utils';
 
 /**
  * Main client for accessing Surflux indexer services.
@@ -37,10 +31,9 @@ export class SurfluxIndexersClient {
     if (!isValidApiKey(apiKey)) {
       throw new Error('Surflux API key is required. Please provide a valid API key.');
     }
-    const validatedApiKey: string = apiKey;
     const networkString = String(network);
-    this.deepbook = new DeepbookClient(validatedApiKey, networkString);
-    this.nft = new NFTClient(validatedApiKey, networkString);
+    this.deepbook = new DeepbookClient(apiKey, networkString);
+    this.nft = new NFTClient(apiKey, networkString);
   }
 }
 
