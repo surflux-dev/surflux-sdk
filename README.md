@@ -280,6 +280,8 @@ export class EventsService implements OnModuleInit {
 }
 ```
 
+**Important:** When using multiple stream clients (e.g., multiple `SurfluxPackageEventsClient` or `SurfluxDeepbookEventsClient` instances), each client must be in a separate NestJS service. This ensures proper lifecycle management and prevents connection conflicts.
+
 ### React
 
 ```typescript
