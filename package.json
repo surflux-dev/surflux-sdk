@@ -19,6 +19,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "postbuild": "chmod +x dist/cli.js || true",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build",
     "dev": "tsc --watch"
