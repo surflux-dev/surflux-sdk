@@ -1,6 +1,6 @@
 {
   "name": "@surflux/sdk",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Type-safe Sui event streaming with Surflux integration",
   "publishConfig": {
     "access": "restricted"

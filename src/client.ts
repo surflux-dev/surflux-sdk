@@ -249,9 +249,9 @@ export class SurfluxPackageEventsClient {
 
       const timeoutId = timeout
         ? setTimeout(() => {
-            this.off(eventType, handler as EventHandler<unknown>);
-            reject(new Error(`Timeout waiting for event: ${eventType}`));
-          }, timeout)
+          this.off(eventType, handler as EventHandler<unknown>);
+          reject(new Error(`Timeout waiting for event: ${eventType}`));
+        }, timeout)
         : null;
 
       this.on(eventType, handler);
@@ -275,8 +275,7 @@ export class SurfluxPackageEventsClient {
       let typesBasePath = resolvedPath;
 
       if (!safeFsExistsSync(packageInfoPath) && safeFsIsDirectory(resolvedPath)) {
-        const normalizedPackageId = this.packageId.replace(/^0x/, '');
-        const packageDirPath = safePathJoin(resolvedPath, normalizedPackageId);
+        const packageDirPath = safePathJoin(resolvedPath, this.packageId);
 
         if (safeFsIsDirectory(packageDirPath)) {
           packageInfoPath = safePathJoin(packageDirPath, 'package-info.json');

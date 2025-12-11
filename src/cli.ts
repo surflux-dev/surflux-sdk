@@ -24,8 +24,7 @@ program
       const baseOutputDir = path.resolve(options.output);
       await fs.ensureDir(baseOutputDir);
 
-      const normalizedPackageId = packageId.replace(/^0x/, '');
-      const packageOutputDir = path.join(baseOutputDir, normalizedPackageId);
+      const packageOutputDir = path.join(baseOutputDir, packageId);
       await fs.ensureDir(packageOutputDir);
 
       const types = await generateTypes(packageId, network);
