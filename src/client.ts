@@ -5,13 +5,6 @@ import {
   matchesPattern,
   type EventHandler,
 } from './utils';
-import {
-  safePathResolve,
-  safePathJoin,
-  safeFsExistsSync,
-  safeFsReadJsonSync,
-  safeFsIsDirectory,
-} from './fs-utils';
 import { getFluxBaseUrl } from './constants';
 
 const EventSourceClass = getEventSourceClass();
@@ -249,9 +242,9 @@ export class SurfluxPackageEventsClient {
 
       const timeoutId = timeout
         ? setTimeout(() => {
-          this.off(eventType, handler as EventHandler<unknown>);
-          reject(new Error(`Timeout waiting for event: ${eventType}`));
-        }, timeout)
+            this.off(eventType, handler as EventHandler<unknown>);
+            reject(new Error(`Timeout waiting for event: ${eventType}`));
+          }, timeout)
         : null;
 
       this.on(eventType, handler);
@@ -259,57 +252,8 @@ export class SurfluxPackageEventsClient {
   }
 
   onEvent<T = unknown>(eventTypeName: string, handler: EventHandler<T>): void {
-    if (isBrowser()) {
-      this.on(eventTypeName, handler);
-      return;
-    }
-
-    try {
-      const resolvedPath = safePathResolve(this.generatedTypesPath);
-      if (!resolvedPath) {
-        this.on(eventTypeName, handler);
-        return;
-      }
-
-      let packageInfoPath = safePathJoin(resolvedPath, 'package-info.json');
-      let typesBasePath = resolvedPath;
-
-      if (!safeFsExistsSync(packageInfoPath) && safeFsIsDirectory(resolvedPath)) {
-        const packageDirPath = safePathJoin(resolvedPath, this.packageId);
-
-        if (safeFsIsDirectory(packageDirPath)) {
-          packageInfoPath = safePathJoin(packageDirPath, 'package-info.json');
-          typesBasePath = packageDirPath;
-        }
-      }
-
-      if (safeFsExistsSync(packageInfoPath)) {
-        const packageInfo = safeFsReadJsonSync(packageInfoPath);
-
-        if (
-          packageInfo &&
-          typeof packageInfo === 'object' &&
-          'packageId' in packageInfo &&
-          typeof packageInfo.packageId === 'string'
-        ) {
-          const indexPath = safePathJoin(typesBasePath, 'index.ts');
-          const typesPath = safePathJoin(typesBasePath, 'types.ts');
-          const hasTypes = safeFsExistsSync(indexPath) || safeFsExistsSync(typesPath);
-
-          if (hasTypes) {
-            const fullEventTypePattern = `${packageInfo.packageId}::*::${eventTypeName}`;
-            this.on(fullEventTypePattern, handler);
-          }
-
-          this.on(eventTypeName, handler);
-          return;
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to load types from filesystem, using event name only:', error);
-    }
-
     this.on(eventTypeName, handler);
+    return;
   }
 
   createTypedHandlers<T extends Record<string, unknown>>(eventHandlers: {
