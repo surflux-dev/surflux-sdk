@@ -7,14 +7,26 @@ import {
 } from './types';
 import {
   getEventSourceClass,
+  getCreateEventSource,
   isValidApiKey,
   isEventSourceAvailable,
   matchesPattern,
   type EventHandler,
+  type EventSourceLike,
+  type EventSourceClient,
 } from './utils';
 import { getFluxBaseUrl } from './constants';
 
-const EventSourceClass = getEventSourceClass();
+let EventSourceClass: ReturnType<typeof getEventSourceClass> | null = null;
+let createEventSource: ReturnType<typeof getCreateEventSource> | null = null;
+
+if (isEventSourceAvailable()) {
+  EventSourceClass = getEventSourceClass();
+} else {
+  try {
+    createEventSource = getCreateEventSource();
+  } catch {}
+}
 
 // Type helper to get the event type based on stream type
 type StreamEventType<T extends DeepbookStreamType> = T extends DeepbookStreamType.ALL_UPDATES
@@ -56,7 +68,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
   private streamKey: string;
   private poolName: string;
   private baseUrl: string;
-  private eventSource: EventSource | null = null;
+  private eventSource: EventSourceLike | EventSourceClient | null = null;
   private subscriptions: Map<string, Array<EventHandler<unknown>>> = new Map();
   private isConnected: boolean = false;
   private streamType: T;
@@ -151,42 +163,58 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
 
       const isBrowserEnv = isEventSourceAvailable();
 
-      if (isBrowserEnv) {
-        this.eventSource = new EventSourceClass(SSE_URL);
-      } else {
-        this.eventSource = new EventSourceClass(SSE_URL, {
-          headers: {
-            Accept: 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            'User-Agent': '@surflux/sdk',
-          },
-        });
-      }
+      try {
+        if (isBrowserEnv && EventSourceClass) {
+          this.eventSource = new EventSourceClass(SSE_URL);
+          this.eventSource.addEventListener('open', () => {
+            this.isConnected = true;
+            console.log(`Connected to Deepbook ${endpoint} stream`);
+            resolve();
+          });
 
-      if (this.eventSource) {
-        this.eventSource.onopen = () => {
-          this.isConnected = true;
-          console.log(`Connected to Deepbook ${endpoint} stream`);
-          resolve();
-        };
+          this.eventSource.addEventListener('message', (event: Event | MessageEvent) => {
+            if (event instanceof MessageEvent) {
+              try {
+                const deepbookEvent = JSON.parse(event.data) as StreamEventType<T>;
+                this.handleEvent(deepbookEvent);
+              } catch (error) {
+                console.error('Error parsing event:', error instanceof Error ? error : String(error));
+              }
+            }
+          });
 
-        this.eventSource.onmessage = (event: MessageEvent) => {
-          try {
-            const deepbookEvent = JSON.parse(event.data) as StreamEventType<T>;
-            this.handleEvent(deepbookEvent);
-          } catch (error) {
-            console.error('Error parsing event:', error instanceof Error ? error : String(error));
-          }
-        };
+          this.eventSource.addEventListener('error', (error: Event) => {
+            console.error('EventSource error:', error);
+            if (!this.isConnected) {
+              reject(new Error('EventSource connection failed'));
+            }
+          });
+        } else if (createEventSource) {
+          const messageHandler = (event: { data: string; event?: string; id?: string }) => {
+            try {
+              const deepbookEvent = JSON.parse(event.data) as StreamEventType<T>;
+              this.handleEvent(deepbookEvent);
+            } catch (error) {
+              console.error('Error parsing event:', error instanceof Error ? error : String(error));
+            }
+          };
 
-        this.eventSource.onerror = (error: Event) => {
-          console.error('EventSource error:', error);
-          if (!this.isConnected) {
-            reject(new Error('EventSource connection failed'));
-          }
-        };
-      } else {
-        reject(new Error('Failed to create EventSource'));
+          this.eventSource = createEventSource({
+            url: SSE_URL,
+            headers: {
+              Accept: 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              'User-Agent': '@surflux/sdk',
+            },
+            onMessage: messageHandler,
+          });
+        } else {
+          throw new Error('EventSource is not available in this environment');
+        }
+      } catch (error) {
+        reject(
+          new Error(`Failed to create EventSource: ${error instanceof Error ? error.message : String(error)}`)
+        );
       }
     });
   }

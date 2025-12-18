@@ -12,22 +12,38 @@ export interface EventHandler<T = unknown> {
   (event: T): void;
 }
 
-/**
- * EventSource constructor interface
- */
-export interface EventSourceConstructor {
-  new (url: string, eventSourceInitDict?: { headers?: Record<string, string> }): EventSource;
+export interface EventSourceLike {
+  addEventListener(type: string, listener: (event: MessageEvent | Event) => void): void;
+  removeEventListener(type: string, listener: (event: MessageEvent | Event) => void): void;
+  close(): void;
+  readyState?: number;
+  url?: string;
 }
 
+export interface EventSourceConstructor {
+  new (url: string, eventSourceInitDict?: { headers?: Record<string, string> }): EventSourceLike;
+}
+export interface EventSourceClient {
+  close(): void;
+  readyState: 'open' | 'closed' | 'connecting';
+  lastEventId?: string;
+}
+export type CreateEventSourceFunction = (options: {
+  url: string;
+  headers?: Record<string, string>;
+  onMessage?: (event: { data: string; event?: string; id?: string }) => void;
+  fetch?: typeof fetch;
+}) => EventSourceClient;
+
 /**
- * Global object with EventSource property
+ * Global object with EventSource property (browser native)
  */
 interface GlobalWithEventSource {
   EventSource: EventSourceConstructor;
 }
 
 /**
- * Gets the EventSource class constructor, either from the global object or by requiring the eventsource package
+ * Gets the EventSource class constructor for browser, or createEventSource function for Node.js
  */
 export function getEventSourceClass(): EventSourceConstructor {
   const globalObj =
@@ -36,13 +52,19 @@ export function getEventSourceClass(): EventSourceConstructor {
     return (globalObj as GlobalWithEventSource).EventSource;
   }
 
+  throw new Error('Native EventSource not available.');
+}
+export function getCreateEventSource(): CreateEventSourceFunction {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require('eventsource') as EventSourceConstructor;
-  } catch {
-    throw new Error(
-      'EventSource is not available. In Node.js, make sure "eventsource" package is installed.'
-    );
+    const { createEventSource } = require('eventsource-client');
+    if (typeof createEventSource !== 'function') {
+      throw new Error('createEventSource function not found in eventsource-client package');
+    }
+    return createEventSource as CreateEventSourceFunction;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`eventsource-client is not available. Error: ${errorMessage}`);
   }
 }
 
