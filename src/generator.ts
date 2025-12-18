@@ -175,22 +175,47 @@ function processField(
   fieldName: string,
   fieldType: SuiMoveNormalizedType | null | undefined,
   normalizedPackageId: string,
-  fieldTypes: string[]
+  fieldTypes: string[],
+  language: 'typescript' | 'javascript' = 'typescript'
 ): void {
   try {
     if (!fieldType) {
       console.warn(`Warning: Field ${fieldName} has no type, using 'unknown'`);
-      fieldTypes.push(`  ${fieldName}: unknown;`);
+      if (language === 'typescript') {
+        fieldTypes.push(`  ${fieldName}: unknown;`);
+      } else {
+        fieldTypes.push(`   * @property {unknown} ${fieldName}`);
+      }
       return;
     }
 
     const tsType = suiTypeToTypeScript(fieldType, normalizedPackageId);
-    fieldTypes.push(`  ${fieldName}: ${tsType};`);
+    if (language === 'typescript') {
+      fieldTypes.push(`  ${fieldName}: ${tsType};`);
+    } else {
+      const jsdocType = convertToJSDocType(tsType);
+      fieldTypes.push(`   * @property {${jsdocType}} ${fieldName}`);
+    }
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.warn(`Warning: Failed to process field ${fieldName}: ${errorMessage}`);
-    fieldTypes.push(`  ${fieldName}: unknown;`);
+    if (language === 'typescript') {
+      fieldTypes.push(`  ${fieldName}: unknown;`);
+    } else {
+      fieldTypes.push(`   * @property {unknown} ${fieldName}`);
+    }
   }
+}
+
+function convertToJSDocType(tsType: string): string {
+  // Convert TypeScript types to JSDoc types
+  let jsdocType = tsType
+    .replace(/\|/g, '|')
+    .replace(/\[\]/g, '[]')
+    .replace(/Map<([^,]+),\s*([^>]+)>/g, 'Object.<$1, $2>')
+    .replace(/Set<([^>]+)>/g, '$1[]')
+    .replace(/Record<string,\s*([^>]+)>/g, 'Object.<string, $1>');
+  return jsdocType;
 }
 
 function extractTypeNames(typeString: string): Set<string> {
@@ -224,28 +249,55 @@ function extractTypeNames(typeString: string): Set<string> {
 
 function generateExternalTypeDefinition(
   typeName: string,
-  struct?: { address: string; module: string; name: string }
+  struct?: { address: string; module: string; name: string },
+  language: 'typescript' | 'javascript' = 'typescript'
 ): string {
-  const knownTypes: Record<string, string> = {
-    Bytes32: 'export type Bytes32 = number[]; // 32-byte array',
-    ExternalAddress: 'export type ExternalAddress = number[]; // External address bytes',
-    T0: 'export type T0 = unknown; // Generic type parameter',
-    ConsumedVAAs: 'export interface ConsumedVAAs {\n  [key: string]: unknown;\n}',
-    UpgradeCap: 'export interface UpgradeCap {\n  [key: string]: unknown;\n}',
-  };
+  if (language === 'typescript') {
+    const knownTypes: Record<string, string> = {
+      Bytes32: 'export type Bytes32 = number[]; // 32-byte array',
+      ExternalAddress: 'export type ExternalAddress = number[]; // External address bytes',
+      T0: 'export type T0 = unknown; // Generic type parameter',
+      ConsumedVAAs: 'export interface ConsumedVAAs {\n  [key: string]: unknown;\n}',
+      UpgradeCap: 'export interface UpgradeCap {\n  [key: string]: unknown;\n}',
+    };
 
-  if (knownTypes[typeName]) {
-    return knownTypes[typeName];
+    if (knownTypes[typeName]) {
+      return knownTypes[typeName];
+    }
+
+    if (struct) {
+      return `export type ${typeName} = unknown; // From ${struct.address}::${struct.module}::${struct.name}`;
+    }
+
+    return `export type ${typeName} = unknown; // External type - definition not available`;
+  } else {
+    // JavaScript with JSDoc
+    const knownTypes: Record<string, string> = {
+      Bytes32: '/**\n * @typedef {number[]} Bytes32\n * @description 32-byte array\n */\nconst Bytes32 = {};',
+      ExternalAddress:
+        '/**\n * @typedef {number[]} ExternalAddress\n * @description External address bytes\n */\nconst ExternalAddress = {};',
+      T0: '/**\n * @typedef {unknown} T0\n * @description Generic type parameter\n */\nconst T0 = {};',
+      ConsumedVAAs: '/**\n * @typedef {Object.<string, unknown>} ConsumedVAAs\n */\nconst ConsumedVAAs = {};',
+      UpgradeCap: '/**\n * @typedef {Object.<string, unknown>} UpgradeCap\n */\nconst UpgradeCap = {};',
+    };
+
+    if (knownTypes[typeName]) {
+      return knownTypes[typeName];
+    }
+
+    if (struct) {
+      return `/**\n * @typedef {unknown} ${typeName}\n * @description From ${struct.address}::${struct.module}::${struct.name}\n */\nconst ${typeName} = {};`;
+    }
+
+    return `/**\n * @typedef {unknown} ${typeName}\n * @description External type - definition not available\n */\nconst ${typeName} = {};`;
   }
-
-  if (struct) {
-    return `export type ${typeName} = unknown; // From ${struct.address}::${struct.module}::${struct.name}`;
-  }
-
-  return `export type ${typeName} = unknown; // External type - definition not available`;
 }
 
-export async function generateTypes(packageId: string, network: string): Promise<string> {
+export async function generateTypes(
+  packageId: string,
+  network: string,
+  language: 'typescript' | 'javascript' = 'typescript'
+): Promise<string> {
   const rpcUrl = getRpcUrl(network);
   const client = new SuiClient({ url: rpcUrl });
   const normalizedPackageId = normalizeSuiAddress(packageId);
@@ -333,7 +385,7 @@ export async function generateTypes(packageId: string, network: string): Promise
         for (const field of fields) {
           const fieldName = field.name || 'unknown';
           const fieldType: SuiMoveNormalizedType = field.type;
-          processField(fieldName, fieldType, normalizedPackageId, fieldTypes);
+          processField(fieldName, fieldType, normalizedPackageId, fieldTypes, language);
         }
       } else {
         for (const [fieldName, field] of Object.entries(fields)) {
@@ -343,13 +395,21 @@ export async function generateTypes(packageId: string, network: string): Promise
           } else {
             fieldType = field as unknown as SuiMoveNormalizedType;
           }
-          processField(fieldName, fieldType, normalizedPackageId, fieldTypes);
+          processField(fieldName, fieldType, normalizedPackageId, fieldTypes, language);
         }
       }
 
-      eventTypes.push(`export interface ${typeName} {
+      if (language === 'typescript') {
+        eventTypes.push(`export interface ${typeName} {
 ${fieldTypes.join('\n')}
 }`);
+      } else {
+        eventTypes.push(`/**
+ * @typedef {Object} ${typeName}
+${fieldTypes.join('\n')}
+ */
+const ${typeName} = {};`);
+      }
 
       definedTypeNames.add(typeName);
 
@@ -384,13 +444,13 @@ ${fieldTypes.join('\n')}
 
     for (const [typeName, struct] of externalTypesMap.entries()) {
       if (!definedTypeNames.has(typeName)) {
-        externalTypeDefinitions.push(generateExternalTypeDefinition(typeName, struct));
+        externalTypeDefinitions.push(generateExternalTypeDefinition(typeName, struct, language));
       }
     }
 
     for (const typeName of Array.from(externalTypes).sort()) {
       if (!externalTypesMap.has(typeName) && !definedTypeNames.has(typeName)) {
-        externalTypeDefinitions.push(generateExternalTypeDefinition(typeName));
+        externalTypeDefinitions.push(generateExternalTypeDefinition(typeName, undefined, language));
       }
     }
 
@@ -398,20 +458,51 @@ ${fieldTypes.join('\n')}
   }
 
   const usesMap = allTypeStrings.includes('Map<');
-  const commonTypes =
-    (externalTypeDefinitions.length > 0 ? externalTypeDefinitions.join('\n') : '') +
-    (usesMap ? '// Common type definitions\nexport type Map<K, V> = Record<string, V>;\n\n' : '');
+  let commonTypes = '';
+  if (language === 'typescript') {
+    commonTypes =
+      (externalTypeDefinitions.length > 0 ? externalTypeDefinitions.join('\n') : '') +
+      (usesMap ? '// Common type definitions\nexport type Map<K, V> = Record<string, V>;\n\n' : '');
+  } else {
+    commonTypes =
+      (externalTypeDefinitions.length > 0 ? externalTypeDefinitions.join('\n\n') : '') +
+      (usesMap
+        ? '\n/**\n * @typedef {Object.<string, V>} Map\n * @template K\n * @template V\n */\nconst Map = {};\n\n'
+        : '');
+  }
 
   const typesContent = eventTypes.join('\n\n');
 
-  const eventMappings = eventNames.map((event) => `  ${event.typeName}: '${event.fullType}'`).join(',\n');
+  if (language === 'typescript') {
+    const eventMappings = eventNames.map((event) => `  ${event.typeName}: '${event.fullType}'`).join(',\n');
 
-  const eventEnumValues = eventNames.map((event) => `  ${event.typeName} = '${event.typeName}'`).join(',\n');
-  const eventEnum = `\n// Enum for event names (use EventName.GovernanceInstruction instead of 'GovernanceInstruction')\nexport enum EventName {\n${eventEnumValues}\n}\n`;
+    const eventEnumValues = eventNames
+      .map((event) => `  ${event.typeName} = '${event.typeName}'`)
+      .join(',\n');
+    const eventEnum = `\n// Enum for event names (use EventName.GovernanceInstruction instead of 'GovernanceInstruction')\nexport enum EventName {\n${eventEnumValues}\n}\n`;
 
-  const eventMapType = `\nexport const EventTypes = {\n${eventMappings}\n} as const;\n\nexport type EventTypeName = keyof typeof EventTypes;\n\nexport type EventTypeMap = {\n${eventNames
-    .map((e) => `  [EventTypes.${e.typeName}]: ${e.typeName}`)
-    .join(';\n')}\n};\n`;
+    const eventMapType = `\nexport const EventTypes = {\n${eventMappings}\n} as const;\n\nexport type EventTypeName = keyof typeof EventTypes;\n\nexport type EventTypeMap = {\n${eventNames
+      .map((e) => `  [EventTypes.${e.typeName}]: ${e.typeName}`)
+      .join(';\n')}\n};\n`;
 
-  return imports + commonTypes + typesContent + eventEnum + eventMapType;
+    return imports + commonTypes + typesContent + eventEnum + eventMapType;
+  } else {
+    const eventMappings = eventNames.map((event) => `  ${event.typeName}: '${event.fullType}'`).join(',\n');
+
+    const eventEnumValues = eventNames.map((event) => `  ${event.typeName}: '${event.typeName}'`).join(',\n');
+
+    const eventEnum = `\n/**\n * Enum for event names\n * @enum {string}\n */\nconst EventName = {\n${eventEnumValues}\n};\n`;
+
+    const eventMapType = `\n/**\n * Event type mappings\n * @type {Object.<string, string>}\n */\nconst EventTypes = {\n${eventMappings}\n};\n\n/**\n * @typedef {string} EventTypeName\n */\n\n/**\n * @typedef {Object} EventTypeMap\n${eventNames
+      .map((e) => ` * @property {${e.typeName}} [EventTypes.${e.typeName}]`)
+      .join('\n')}\n */\n`;
+
+    const allTypeNames = Array.from(definedTypeNames).sort();
+    const allExternalTypeNames = Array.from(externalTypes).sort();
+    const allTypeNamesForExport = [...allTypeNames, ...allExternalTypeNames];
+
+    const exports = `\nmodule.exports = {\n  EventName,\n  EventTypes\n};\n`;
+
+    return imports + commonTypes + typesContent + eventEnum + eventMapType + exports;
+  }
 }
