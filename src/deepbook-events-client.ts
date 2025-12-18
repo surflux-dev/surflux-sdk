@@ -14,6 +14,14 @@ import {
   type EventHandler,
   type EventSourceLike,
   type EventSourceClient,
+  type CacheMethods,
+  type EventCache,
+  loadTimestampFromCache,
+  saveTimestampToCache,
+  shouldFilterEventByTimestamp,
+  updateLatestTimestamp,
+  createCache,
+  CACHE_KEYS,
 } from './utils';
 import { getFluxBaseUrl } from './constants';
 
@@ -56,6 +64,17 @@ export interface SurfluxDeepbookEventsClientConfig<T extends DeepbookStreamType 
   poolName: string;
   streamType: T;
   network?: string;
+  /**
+   * Optional timestamp in milliseconds. Only events newer than this timestamp will be processed.
+   * If not provided, the cached timestamp will be used (if available).
+   */
+  fromTimestampMs?: number;
+  /**
+   * Optional cache methods. If provided, these will be used for persistent caching.
+   * If not provided, an in-memory cache will be used automatically.
+   * Caching is always enabled to avoid duplicate events.
+   */
+  cache?: CacheMethods;
 }
 
 /**
@@ -68,10 +87,14 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
   private streamKey: string;
   private poolName: string;
   private baseUrl: string;
+  private fromTimestampMs?: number;
+  private readonly cache: EventCache;
+  private readonly cacheKey: string;
   private eventSource: EventSourceLike | EventSourceClient | null = null;
   private subscriptions: Map<string, Array<EventHandler<unknown>>> = new Map();
   private isConnected: boolean = false;
   private streamType: T;
+  private latestTimestampMs?: number;
 
   /**
    * Creates a new SurfluxDeepbookEventsClient instance.
@@ -111,6 +134,9 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
     this.poolName = config.poolName;
     this.streamType = config.streamType;
     this.baseUrl = getFluxBaseUrl(config.network ?? 'testnet');
+    this.fromTimestampMs = config.fromTimestampMs;
+    this.cache = createCache(config.cache);
+    this.cacheKey = CACHE_KEYS.DEEPBOOK_EVENTS;
   }
 
   /**
@@ -130,15 +156,19 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
    * await liveTradesClient.connect({ lastId: '1755091934020-0' });
    * ```
    */
-  connect(
+  async connect(
     params?: T extends DeepbookStreamType.ALL_UPDATES ? ReceiveAllUpdatesParams : ReceiveLiveTradesParams
   ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // Disconnect existing connection if any
-      if (this.isConnected) {
-        this.disconnect();
-      }
+    const cachedTimestamp = await loadTimestampFromCache(this.cache, this.cacheKey, this.fromTimestampMs);
+    if (cachedTimestamp !== undefined) {
+      this.fromTimestampMs = cachedTimestamp;
+    }
 
+    if (this.isConnected) {
+      await this.disconnect();
+    }
+
+    return new Promise((resolve, reject) => {
       const endpoint = this.streamType === DeepbookStreamType.ALL_UPDATES ? 'all-updates' : 'live-trades';
       const queryParams: string[] = [`api-key=${this.streamKey}`];
 
@@ -224,10 +254,10 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
    *
    * @example
    * ```typescript
-   * client.disconnect();
+   * await client.disconnect();
    * ```
    */
-  disconnect(): void {
+  async disconnect(): Promise<void> {
     if (this.eventSource) {
       this.eventSource.close();
       this.eventSource = null;
@@ -235,6 +265,8 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
       const endpoint = this.streamType === DeepbookStreamType.ALL_UPDATES ? 'all-updates' : 'live-trades';
       console.log(`Disconnected from Deepbook ${endpoint} stream`);
     }
+
+    await saveTimestampToCache(this.cache, this.cacheKey, this.latestTimestampMs);
   }
 
   /**
@@ -246,6 +278,12 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
 
   private handleEvent(event: StreamEventType<T>): void {
     if (!event.type) return;
+
+    if (shouldFilterEventByTimestamp(event.timestamp_ms, this.fromTimestampMs)) {
+      return;
+    }
+
+    this.latestTimestampMs = updateLatestTimestamp(event.timestamp_ms, this.latestTimestampMs);
 
     const handlerEntries: Array<{ handler: EventHandler; isWildcard: boolean }> = [];
 

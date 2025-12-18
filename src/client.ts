@@ -7,8 +7,18 @@ import {
   type EventHandler,
   type EventSourceLike,
   type EventSourceClient,
+  type CacheMethods,
+  type EventCache,
+  loadTimestampFromCache,
+  saveTimestampToCache,
+  shouldFilterEventByTimestamp,
+  updateLatestTimestamp,
+  createCache,
+  CACHE_KEYS,
 } from './utils';
 import { getFluxBaseUrl } from './constants';
+
+export type { CacheMethods } from './utils';
 
 let EventSourceClass: ReturnType<typeof getEventSourceClass> | null = null;
 let createEventSource: ReturnType<typeof getCreateEventSource> | null = null;
@@ -52,12 +62,24 @@ interface SurfluxPackageEvent {
     contents: unknown;
   };
 }
+
 /**
  * Configuration options for SurfluxPackageEventsClient
  */
 export interface SurfluxPackageEventsClientConfig {
   streamKey: string;
   network?: string;
+  /**
+   * Optional timestamp in milliseconds. Only events newer than this timestamp will be processed.
+   * If not provided, the cached timestamp will be used (if available).
+   */
+  fromTimestampMs?: number;
+  /**
+   * Optional cache methods. If provided, these will be used for persistent caching.
+   * If not provided, an in-memory cache will be used automatically.
+   * Caching is always enabled to avoid duplicate events.
+   */
+  cache?: CacheMethods;
 }
 
 /**
@@ -67,16 +89,28 @@ export interface SurfluxPackageEventsClientConfig {
 export class SurfluxPackageEventsClient {
   private readonly streamKey: string;
   private readonly network: string;
+  private fromTimestampMs?: number;
+  private readonly cache: EventCache;
+  private readonly cacheKey: string;
   private eventSource: EventSourceLike | EventSourceClient | null = null;
   private subscriptions: Map<string, EventHandler<unknown>[]> = new Map();
   private isConnected: boolean = false;
+  private latestTimestampMs?: number;
 
   constructor(config: SurfluxPackageEventsClientConfig) {
     this.streamKey = config.streamKey;
     this.network = config.network ?? 'testnet';
+    this.fromTimestampMs = config.fromTimestampMs;
+    this.cache = createCache(config.cache);
+    this.cacheKey = CACHE_KEYS.PACKAGE_EVENTS;
   }
 
-  connect(): Promise<void> {
+  async connect(): Promise<void> {
+    const cachedTimestamp = await loadTimestampFromCache(this.cache, this.cacheKey, this.fromTimestampMs);
+    if (cachedTimestamp !== undefined) {
+      this.fromTimestampMs = cachedTimestamp;
+    }
+
     return new Promise((resolve, reject) => {
       if (this.isConnected) {
         resolve();
@@ -184,17 +218,25 @@ export class SurfluxPackageEventsClient {
     }
   }
 
-  disconnect(): void {
+  async disconnect(): Promise<void> {
     if (this.eventSource) {
       this.eventSource.close();
       this.eventSource = null;
       this.isConnected = false;
       console.log('Disconnected from event stream');
     }
+
+    await saveTimestampToCache(this.cache, this.cacheKey, this.latestTimestampMs);
   }
 
   private handleEvent(event: SurfluxEvent, fullPackageEvent?: SurfluxPackageEvent): void {
     if (!event.type) return;
+
+    if (shouldFilterEventByTimestamp(event.timestamp_ms, this.fromTimestampMs)) {
+      return;
+    }
+
+    this.latestTimestampMs = updateLatestTimestamp(event.timestamp_ms, this.latestTimestampMs);
 
     const eventTypeParts = event.type.split('::');
     const eventTypeName = eventTypeParts[eventTypeParts.length - 1];
