@@ -37,13 +37,23 @@ type AllowedEventType<T extends DeepbookStreamType> = T extends DeepbookStreamTy
   : never;
 
 /**
+ * Configuration options for SurfluxDeepbookEventsClient
+ */
+export interface SurfluxDeepbookEventsClientConfig<T extends DeepbookStreamType = DeepbookStreamType> {
+  streamKey: string;
+  poolName: string;
+  streamType: T;
+  network?: string;
+}
+
+/**
  * Client for receiving Deepbook real-time events and updates.
  * Provides methods to fetch all updates for a specific trading pool.
  *
  * @template T - The stream type (DeepbookStreamType.ALL_UPDATES or DeepbookStreamType.LIVE_TRADES)
  */
 export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = DeepbookStreamType> {
-  private apiKey: string;
+  private streamKey: string;
   private poolName: string;
   private baseUrl: string;
   private eventSource: EventSource | null = null;
@@ -54,40 +64,41 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
   /**
    * Creates a new SurfluxDeepbookEventsClient instance.
    *
-   * @param apiKey - Your Surflux API key
-   * @param poolName - The name of the trading pool (e.g., 'SUI-USDC')
-   * @param streamType - The type of stream to connect to (ALL_UPDATES or LIVE_TRADES)
-   * @param network - Network to use ('mainnet' or 'testnet', default: 'testnet')
+   * @param config - Configuration object
+   * @param config.streamKey - Your Surflux stream key
+   * @param config.poolName - The name of the trading pool (e.g., 'SUI-USDC')
+   * @param config.streamType - The type of stream to connect to (ALL_UPDATES or LIVE_TRADES)
+   * @param config.network - Network to use ('mainnet' or 'testnet', default: 'testnet')
    *
    * @example
    * ```typescript
    * import { SurfluxDeepbookEventsClient, DeepbookStreamType } from '@surflux/sdk';
    *
    * // For all updates
-   * const allUpdatesClient = new SurfluxDeepbookEventsClient(
-   *   'your-api-key',
-   *   'SUI-USDC',
-   *   DeepbookStreamType.ALL_UPDATES,
-   *   'testnet'
-   * );
+   * const allUpdatesClient = new SurfluxDeepbookEventsClient({
+   *   streamKey: 'your-stream-key',
+   *   poolName: 'SUI-USDC',
+   *   streamType: DeepbookStreamType.ALL_UPDATES,
+   *   network: 'testnet'
+   * });
    *
    * // For live trades only
-   * const liveTradesClient = new SurfluxDeepbookEventsClient(
-   *   'your-api-key',
-   *   'SUI-USDC',
-   *   DeepbookStreamType.LIVE_TRADES,
-   *   'testnet'
-   * );
+   * const liveTradesClient = new SurfluxDeepbookEventsClient({
+   *   streamKey: 'your-stream-key',
+   *   poolName: 'SUI-USDC',
+   *   streamType: DeepbookStreamType.LIVE_TRADES,
+   *   network: 'testnet'
+   * });
    * ```
    */
-  constructor(apiKey: string | undefined, poolName: string, streamType: T, network: string = 'testnet') {
-    if (!isValidApiKey(apiKey)) {
-      throw new Error('Surflux API key is required. Please provide a valid API key.');
+  constructor(config: SurfluxDeepbookEventsClientConfig<T>) {
+    if (!isValidApiKey(config.streamKey)) {
+      throw new Error('Surflux stream key is required. Please provide a valid stream key.');
     }
-    this.apiKey = apiKey;
-    this.poolName = poolName;
-    this.streamType = streamType;
-    this.baseUrl = getFluxBaseUrl(network);
+    this.streamKey = config.streamKey;
+    this.poolName = config.poolName;
+    this.streamType = config.streamType;
+    this.baseUrl = getFluxBaseUrl(config.network ?? 'testnet');
   }
 
   /**
@@ -117,7 +128,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
       }
 
       const endpoint = this.streamType === DeepbookStreamType.ALL_UPDATES ? 'all-updates' : 'live-trades';
-      const queryParams: string[] = [`api-key=${this.apiKey}`];
+      const queryParams: string[] = [`api-key=${this.streamKey}`];
 
       if (params) {
         const { lastId } = params;

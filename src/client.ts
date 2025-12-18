@@ -41,28 +41,27 @@ interface SurfluxPackageEvent {
   };
 }
 /**
+ * Configuration options for SurfluxPackageEventsClient
+ */
+export interface SurfluxPackageEventsClientConfig {
+  streamKey: string;
+  network?: string;
+}
+
+/**
  * Client for receiving real-time package events from Surflux.
  * Provides methods to subscribe to events, handle event streams, and manage connections.
  */
 export class SurfluxPackageEventsClient {
-  private readonly apiKey: string;
-  private readonly packageId: string;
+  private readonly streamKey: string;
   private readonly network: string;
-  private readonly generatedTypesPath: string;
   private eventSource: EventSource | null = null;
   private subscriptions: Map<string, EventHandler<unknown>[]> = new Map();
   private isConnected: boolean = false;
 
-  constructor(
-    apiKey: string,
-    packageId: string,
-    generatedTypesPath: string = './sui-events',
-    network: string = 'testnet'
-  ) {
-    this.apiKey = apiKey;
-    this.packageId = packageId;
-    this.network = network;
-    this.generatedTypesPath = generatedTypesPath;
+  constructor(config: SurfluxPackageEventsClientConfig) {
+    this.streamKey = config.streamKey;
+    this.network = config.network ?? 'testnet';
   }
 
   connect(): Promise<void> {
@@ -73,7 +72,7 @@ export class SurfluxPackageEventsClient {
       }
 
       const baseUrl = getFluxBaseUrl(this.network);
-      const SSE_URL = `${baseUrl}/events?api-key=${this.apiKey}`;
+      const SSE_URL = `${baseUrl}/events?api-key=${this.streamKey}`;
 
       const isBrowserEnv = isEventSourceAvailable();
 
@@ -146,10 +145,6 @@ export class SurfluxPackageEventsClient {
 
   private handleEvent(event: SurfluxEvent, fullPackageEvent?: SurfluxPackageEvent): void {
     if (!event.type) return;
-
-    if (!event.type.includes(this.packageId)) {
-      return;
-    }
 
     const eventTypeParts = event.type.split('::');
     const eventTypeName = eventTypeParts[eventTypeParts.length - 1];

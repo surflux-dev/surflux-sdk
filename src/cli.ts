@@ -112,16 +112,14 @@ import packageInfo from './package-info.json';
 
 /**
  * Create a SurfluxPackageEventsClient instance for this package
- * @param apiKey Your Surflux API key
+ * @param streamKey Your Surflux stream key
  * @param typesPath Optional path to the generated types directory (defaults to current directory)
  */
-export function createEventClient(apiKey: string, typesPath?: string): SurfluxPackageEventsClient {
-  return new SurfluxPackageEventsClient(
-    apiKey,
-    packageInfo.packageId,
-    typesPath || __dirname,
-    packageInfo.network
-  );
+export function createEventClient(streamKey: string, typesPath?: string): SurfluxPackageEventsClient {
+  return new SurfluxPackageEventsClient({
+    streamKey,
+    network: packageInfo.network
+  });
 }
 `;
       } else {
@@ -141,17 +139,15 @@ module.exports.SurfluxPackageEventsClient = SurfluxPackageEventsClient;
 
 /**
  * Create a SurfluxPackageEventsClient instance for this package
- * @param {string} apiKey Your Surflux API key
+ * @param {string} streamKey Your Surflux stream key
  * @param {string} [typesPath] Optional path to the generated types directory (defaults to current directory)
  * @returns {SurfluxPackageEventsClient}
  */
-function createEventClient(apiKey, typesPath) {
-  return new SurfluxPackageEventsClient(
-    apiKey,
-    packageInfo.packageId,
-    typesPath || __dirname,
-    packageInfo.network
-  );
+function createEventClient(streamKey, typesPath) {
+  return new SurfluxPackageEventsClient({
+    streamKey,
+    network: packageInfo.network
+  });
 }
 
 module.exports.createEventClient = createEventClient;

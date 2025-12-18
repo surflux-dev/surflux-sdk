@@ -97,15 +97,29 @@ export interface NFTCollection {
   created_at?: number;
 }
 
+export interface NFTKiosk {
+  object_id: string;
+  owner_cap_object_id: string;
+  owner: string;
+  personal_cap_object_id: string | null;
+  checkpoint_id: number;
+  updated_at: string;
+  created_at: string;
+}
+
 export interface NFTToken {
-  token_id: string;
-  collection_id: string;
-  token_name?: string;
-  description?: string;
-  image_url?: string;
-  metadata?: Record<string, unknown>;
-  owner?: string;
-  minted_at?: number;
+  object_id: string;
+  object_type: string;
+  owner_dynamic_field_object_id: string;
+  kiosk_object_id: string;
+  owner: string | null;
+  checkpoint_id: number;
+  decoded_fields: Record<string, unknown>;
+  decoded_display: Record<string, unknown>;
+  updated_at: string;
+  created_at: string;
+  listed_value?: string;
+  kiosk?: NFTKiosk;
 }
 
 export interface NFTMetadata {
@@ -145,10 +159,10 @@ export interface GetCollectionHoldersParams {
 
 // NFT Response Types
 export interface NftsResponseDto {
-  data: NFTToken[];
-  total: number;
-  page: number;
-  per_page: number;
+  items: NFTToken[];
+  isLastPage: boolean;
+  currentPage: number;
+  perPage: number;
 }
 
 export interface CollectionHoldersDto {

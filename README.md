@@ -34,12 +34,10 @@ npx @surflux/sdk <packageId> <network> -o ./sui-events
 ```typescript
 import { SurfluxPackageEventsClient } from '@surflux/sdk';
 
-const client = new SurfluxPackageEventsClient(
-  'your-api-key',
-  '0x123...',
-  './sui-events',
-  'testnet'
-);
+const client = new SurfluxPackageEventsClient({
+  streamKey: 'your-stream-key',
+  network: 'testnet'
+});
 
 await client.connect();
 
@@ -94,8 +92,10 @@ const result = await client.nft.getNFTsForOwner({
   per_page: 20
 });
 
-console.log(result.data); // NFTToken[]
-console.log(result.total); // Total count
+console.log(result.items); // NFTToken[]
+console.log(result.isLastPage); // boolean
+console.log(result.currentPage); // number
+console.log(result.perPage); // number
 ```
 
 ### Get NFTs for Collection
@@ -168,12 +168,12 @@ Create a client for receiving all Deepbook events (live trades, order book depth
 import { SurfluxDeepbookEventsClient, DeepbookStreamType, DeepbookEventType } from '@surflux/sdk';
 
 // Create client with ALL_UPDATES stream type
-const client = new SurfluxDeepbookEventsClient(
-  'your-api-key',
-  'SUI-USDC',
-  DeepbookStreamType.ALL_UPDATES,
-  'testnet'
-);
+const client = new SurfluxDeepbookEventsClient({
+  streamKey: 'your-stream-key',
+  poolName: 'SUI-USDC',
+  streamType: DeepbookStreamType.ALL_UPDATES,
+  network: 'testnet'
+});
 
 // Connect to the stream (with optional filters)
 await client.connect({
@@ -207,12 +207,12 @@ Create a client for receiving only live trades and order book depth updates:
 import { SurfluxDeepbookEventsClient, DeepbookStreamType } from '@surflux/sdk';
 
 // Create client with LIVE_TRADES stream type
-const client = new SurfluxDeepbookEventsClient(
-  'your-api-key',
-  'SUI-USDC',
-  DeepbookStreamType.LIVE_TRADES,
-  'testnet'
-);
+const client = new SurfluxDeepbookEventsClient({
+  streamKey: 'your-stream-key',
+  poolName: 'SUI-USDC',
+  streamType: DeepbookStreamType.LIVE_TRADES,
+  network: 'testnet'
+});
 
 // Connect to the stream
 await client.connect();
@@ -264,12 +264,10 @@ import { SurfluxPackageEventsClient } from '@surflux/sdk';
 
 @Injectable()
 export class EventsService implements OnModuleInit {
-  private client = new SurfluxPackageEventsClient(
-    process.env.SURFLUX_API_KEY!,
-    process.env.PACKAGE_ID!,
-    './sui-events',
-    'testnet'
-  );
+  private client = new SurfluxPackageEventsClient({
+    streamKey: process.env.SURFLUX_STREAM_KEY!,
+    network: 'testnet'
+  });
 
   async onModuleInit() {
     await this.client.connect();
@@ -292,9 +290,10 @@ function useSuiEvents(apiKey: string, packageId: string) {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    const client = new SurfluxPackageEventsClient(
-      apiKey, packageId, './sui-events', 'testnet'
-    );
+    const client = new SurfluxPackageEventsClient({
+      streamKey: apiKey,
+      network: 'testnet'
+    });
 
     client.connect().then(() => {
       client.onEvent('MyEvent', (event) => {
@@ -316,12 +315,10 @@ function useSuiEvents(apiKey: string, packageId: string) {
 #### Constructor
 
 ```typescript
-new SurfluxPackageEventsClient(
-  apiKey: string,
-  packageId: string,
-  generatedTypesPath?: string,
-  network?: string
-)
+new SurfluxPackageEventsClient(config: {
+  streamKey: string;
+  network?: string;
+})
 ```
 
 #### Methods
@@ -368,39 +365,39 @@ new SurfluxIndexersClient(apiKey: string, network: 'mainnet' | 'testnet')
 #### Constructor
 
 ```typescript
-new SurfluxDeepbookEventsClient<T extends DeepbookStreamType>(
-  apiKey: string,
-  poolName: string,
-  streamType: T,
-  network?: 'mainnet' | 'testnet'
-)
+new SurfluxDeepbookEventsClient<T extends DeepbookStreamType>(config: {
+  streamKey: string;
+  poolName: string;
+  streamType: T;
+  network?: 'mainnet' | 'testnet';
+})
 ```
 
 **Parameters:**
-- `apiKey` - Your Surflux API key
-- `poolName` - The trading pool name (e.g., 'SUI-USDC')
-- `streamType` - The stream type (`DeepbookStreamType.ALL_UPDATES` or `DeepbookStreamType.LIVE_TRADES`)
-- `network` - Network to use ('mainnet' or 'testnet', default: 'testnet')
+- `config.streamKey` - Your Surflux stream key
+- `config.poolName` - The trading pool name (e.g., 'SUI-USDC')
+- `config.streamType` - The stream type (`DeepbookStreamType.ALL_UPDATES` or `DeepbookStreamType.LIVE_TRADES`)
+- `config.network` - Network to use ('mainnet' or 'testnet', default: 'testnet')
 
 **Example:**
 ```typescript
 import { SurfluxDeepbookEventsClient, DeepbookStreamType } from '@surflux/sdk';
 
 // For all updates
-const allUpdatesClient = new SurfluxDeepbookEventsClient(
-  'api-key',
-  'SUI-USDC',
-  DeepbookStreamType.ALL_UPDATES,
-  'testnet'
-);
+const allUpdatesClient = new SurfluxDeepbookEventsClient({
+  streamKey: 'your-stream-key',
+  poolName: 'SUI-USDC',
+  streamType: DeepbookStreamType.ALL_UPDATES,
+  network: 'testnet'
+});
 
 // For live trades only
-const liveTradesClient = new SurfluxDeepbookEventsClient(
-  'api-key',
-  'SUI-USDC',
-  DeepbookStreamType.LIVE_TRADES,
-  'testnet'
-);
+const liveTradesClient = new SurfluxDeepbookEventsClient({
+  streamKey: 'your-stream-key',
+  poolName: 'SUI-USDC',
+  streamType: DeepbookStreamType.LIVE_TRADES,
+  network: 'testnet'
+});
 ```
 
 #### Methods
