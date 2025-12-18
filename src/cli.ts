@@ -95,8 +95,7 @@ program
       const types = await generateTypes(packageId, network, language);
 
       const fileExtension = language === 'typescript' ? 'ts' : 'js';
-      const typesPath = path.join(packageOutputDir, `types.${fileExtension}`);
-      await fs.writeFile(typesPath, types);
+      await fs.writeFile(path.join(packageOutputDir, `types.${fileExtension}`), types);
 
       const indexPath = path.join(packageOutputDir, `index.${fileExtension}`);
       let indexContent: string;
@@ -113,9 +112,8 @@ import packageInfo from './package-info.json';
 /**
  * Create a SurfluxPackageEventsClient instance for this package
  * @param streamKey Your Surflux stream key
- * @param typesPath Optional path to the generated types directory (defaults to current directory)
  */
-export function createEventClient(streamKey: string, typesPath?: string): SurfluxPackageEventsClient {
+export function createEventClient(streamKey: string): SurfluxPackageEventsClient {
   return new SurfluxPackageEventsClient({
     streamKey,
     network: packageInfo.network
@@ -140,10 +138,9 @@ module.exports.SurfluxPackageEventsClient = SurfluxPackageEventsClient;
 /**
  * Create a SurfluxPackageEventsClient instance for this package
  * @param {string} streamKey Your Surflux stream key
- * @param {string} [typesPath] Optional path to the generated types directory (defaults to current directory)
  * @returns {SurfluxPackageEventsClient}
- */
-function createEventClient(streamKey, typesPath) {
+    */
+  function createEventClient(streamKey) {
   return new SurfluxPackageEventsClient({
     streamKey,
     network: packageInfo.network
@@ -164,7 +161,6 @@ module.exports.createEventClient = createEventClient;
 
       console.log(chalk.green('Types generated successfully!'));
       console.log(chalk.gray(`Output: ${packageOutputDir}`));
-      console.log(chalk.gray(`Types: ${typesPath}`));
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(chalk.red('Error generating types:'), errorMessage);
