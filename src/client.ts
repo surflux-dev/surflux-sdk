@@ -1,13 +1,25 @@
 import {
   getEventSourceClass,
+  getCreateEventSource,
   isBrowser,
   isEventSourceAvailable,
   matchesPattern,
   type EventHandler,
+  type EventSourceLike,
+  type EventSourceClient,
 } from './utils';
 import { getFluxBaseUrl } from './constants';
 
-const EventSourceClass = getEventSourceClass();
+let EventSourceClass: ReturnType<typeof getEventSourceClass> | null = null;
+let createEventSource: ReturnType<typeof getCreateEventSource> | null = null;
+
+if (isEventSourceAvailable()) {
+  EventSourceClass = getEventSourceClass();
+} else {
+  try {
+    createEventSource = getCreateEventSource();
+  } catch {}
+}
 
 /**
  * Base event interface for Surflux package events
@@ -55,7 +67,7 @@ export interface SurfluxPackageEventsClientConfig {
 export class SurfluxPackageEventsClient {
   private readonly streamKey: string;
   private readonly network: string;
-  private eventSource: EventSource | null = null;
+  private eventSource: EventSourceLike | EventSourceClient | null = null;
   private subscriptions: Map<string, EventHandler<unknown>[]> = new Map();
   private isConnected: boolean = false;
 
@@ -76,62 +88,100 @@ export class SurfluxPackageEventsClient {
 
       const isBrowserEnv = isEventSourceAvailable();
 
-      if (isBrowserEnv) {
-        this.eventSource = new EventSourceClass(SSE_URL);
-      } else {
-        this.eventSource = new EventSourceClass(SSE_URL, {
-          headers: {
-            Accept: 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            'User-Agent': '@surflux/sdk',
-          },
-        });
-      }
+      try {
+        if (isBrowserEnv && EventSourceClass) {
+          this.eventSource = new EventSourceClass(SSE_URL);
+          this.eventSource.addEventListener('open', () => {
+            console.log('Connected to Surflux event stream');
+            this.isConnected = true;
+            resolve();
+          });
 
-      if (this.eventSource) {
-        this.eventSource.onopen = () => {
-          console.log('Connected to Surflux event stream');
-          this.isConnected = true;
-          resolve();
-        };
-
-        this.eventSource.onmessage = (event: MessageEvent) => {
-          try {
-            const rawData = JSON.parse(event.data);
-            if (rawData.type === 'package_event' && rawData.data?.event_type) {
-              const packageEvent = rawData as SurfluxPackageEvent;
-              const transformedEvent: SurfluxEvent = {
-                type: packageEvent.data.event_type,
-                timestamp_ms: packageEvent.timestamp_ms,
-                checkpoint_id: packageEvent.checkpoint_id,
-                tx_hash: packageEvent.tx_hash,
-                data: {
-                  event_index: packageEvent.data.event_index,
-                  sender: packageEvent.data.sender,
-                  event_type: packageEvent.data.event_type,
-                  contents: packageEvent.data.contents,
-                },
-              };
-              this.handleEvent(transformedEvent, packageEvent);
-            } else {
-              const data = rawData as SurfluxEvent;
-              this.handleEvent(data);
+          this.eventSource.addEventListener('message', (event: Event) => {
+            if (event instanceof MessageEvent) {
+              this.handleMessageEvent(event);
             }
-          } catch (error) {
-            console.error('Error parsing event:', error);
-          }
-        };
+          });
 
-        this.eventSource.onerror = (error: Event) => {
-          console.error('EventSource error:', error);
-          if (!this.isConnected) {
-            reject(new Error('EventSource connection failed'));
-          }
-        };
-      } else {
-        reject(new Error('Failed to create EventSource'));
+          this.eventSource.addEventListener('error', (error: Event) => {
+            console.error('EventSource error:', error);
+            if (!this.isConnected) {
+              reject(new Error('EventSource connection failed'));
+            }
+          });
+        } else if (createEventSource) {
+          const messageHandler = (event: { data: string; event?: string; id?: string }) => {
+            try {
+              const rawData = JSON.parse(event.data);
+              if (rawData.type === 'package_event' && rawData.data?.event_type) {
+                const packageEvent = rawData as SurfluxPackageEvent;
+                const transformedEvent: SurfluxEvent = {
+                  type: packageEvent.data.event_type,
+                  timestamp_ms: packageEvent.timestamp_ms,
+                  checkpoint_id: packageEvent.checkpoint_id,
+                  tx_hash: packageEvent.tx_hash,
+                  data: {
+                    event_index: packageEvent.data.event_index,
+                    sender: packageEvent.data.sender,
+                    event_type: packageEvent.data.event_type,
+                    contents: packageEvent.data.contents,
+                  },
+                };
+                this.handleEvent(transformedEvent, packageEvent);
+              } else {
+                const data = rawData as SurfluxEvent;
+                this.handleEvent(data);
+              }
+            } catch (error) {
+              console.error('Error parsing event:', error);
+            }
+          };
+
+          this.eventSource = createEventSource({
+            url: SSE_URL,
+            headers: {
+              Accept: 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              'User-Agent': '@surflux/sdk',
+            },
+            onMessage: messageHandler,
+          });
+        } else {
+          throw new Error('EventSource is not available in this environment');
+        }
+      } catch (error) {
+        reject(
+          new Error(`Failed to create EventSource: ${error instanceof Error ? error.message : String(error)}`)
+        );
       }
     });
+  }
+
+  private handleMessageEvent(event: MessageEvent): void {
+    try {
+      const rawData = JSON.parse(event.data);
+      if (rawData.type === 'package_event' && rawData.data?.event_type) {
+        const packageEvent = rawData as SurfluxPackageEvent;
+        const transformedEvent: SurfluxEvent = {
+          type: packageEvent.data.event_type,
+          timestamp_ms: packageEvent.timestamp_ms,
+          checkpoint_id: packageEvent.checkpoint_id,
+          tx_hash: packageEvent.tx_hash,
+          data: {
+            event_index: packageEvent.data.event_index,
+            sender: packageEvent.data.sender,
+            event_type: packageEvent.data.event_type,
+            contents: packageEvent.data.contents,
+          },
+        };
+        this.handleEvent(transformedEvent, packageEvent);
+      } else {
+        const data = rawData as SurfluxEvent;
+        this.handleEvent(data);
+      }
+    } catch (error) {
+      console.error('Error parsing event:', error);
+    }
   }
 
   disconnect(): void {
