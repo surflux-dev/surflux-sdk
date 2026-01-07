@@ -7,11 +7,9 @@ import {
   GetTradesParams,
   GetOHLCVParams,
   SurfluxNetwork,
-} from './types';
-import { httpRequest } from './http-client';
-import { isValidApiKey } from './utils';
-import { getApiBaseUrl } from './constants';
-import { buildQueryParams } from './query-utils';
+} from '../types';
+import { buildQueryParams, isValidApiKey, httpRequest } from '../utils';
+import { getApiBaseUrl } from '../constants';
 
 /**
  * Client for interacting with the Surflux Deepbook API.

@@ -1,7 +1,7 @@
-import { SurfluxNetwork } from './types';
+import { SurfluxNetwork } from '../types';
 import { DeepbookClient } from './deepbook-client';
 import { NFTClient } from './nft-client';
-import { isValidApiKey } from './utils';
+import { isValidApiKey } from '../utils';
 
 /**
  * Main client for accessing Surflux indexer services.

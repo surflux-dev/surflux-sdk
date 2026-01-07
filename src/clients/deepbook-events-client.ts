@@ -5,7 +5,7 @@ import {
   ReceiveAllUpdatesParams,
   ReceiveLiveTradesParams,
   SurfluxNetwork,
-} from './types';
+} from '../types';
 import {
   getEventSourceClass,
   getCreateEventSource,
@@ -23,8 +23,8 @@ import {
   updateLatestTimestamp,
   createCache,
   CACHE_KEYS,
-} from './utils';
-import { getFluxBaseUrl } from './constants';
+} from '../utils';
+import { getFluxBaseUrl } from '../constants';
 
 let EventSourceClass: ReturnType<typeof getEventSourceClass> | null = null;
 let createEventSource: ReturnType<typeof getCreateEventSource> | null = null;

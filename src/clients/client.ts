@@ -15,11 +15,9 @@ import {
   updateLatestTimestamp,
   createCache,
   CACHE_KEYS,
-} from './utils';
-import { getFluxBaseUrl } from './constants';
-import { SurfluxNetwork } from './types';
-
-export type { CacheMethods } from './utils';
+} from '../utils';
+import { getFluxBaseUrl } from '../constants';
+import { SurfluxNetwork } from '../types';
 
 let EventSourceClass: ReturnType<typeof getEventSourceClass> | null = null;
 let createEventSource: ReturnType<typeof getCreateEventSource> | null = null;
