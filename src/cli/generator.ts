@@ -89,7 +89,7 @@ function mapPrimitiveType(type: string): string {
           const parts = normalized.split('::');
           return parts[parts.length - 1];
         }
-      } catch {}
+      } catch { }
       return 'unknown';
   }
 }
@@ -209,7 +209,7 @@ function processField(
 
 function convertToJSDocType(tsType: string): string {
   // Convert TypeScript types to JSDoc types
-  let jsdocType = tsType
+  const jsdocType = tsType
     .replace(/\|/g, '|')
     .replace(/\[\]/g, '[]')
     .replace(/Map<([^,]+),\s*([^>]+)>/g, 'Object.<$1, $2>')
@@ -393,7 +393,7 @@ export async function generateTypes(
           if (typeof field === 'object' && field !== null && 'type' in field) {
             fieldType = (field as SuiMoveNormalizedField).type;
           } else {
-            fieldType = field as unknown as SuiMoveNormalizedType;
+            fieldType = field as SuiMoveNormalizedType;
           }
           processField(fieldName, fieldType, normalizedPackageId, fieldTypes, language);
         }
@@ -499,7 +499,7 @@ const ${typeName} = {};`);
 
     const allTypeNames = Array.from(definedTypeNames).sort();
     const allExternalTypeNames = Array.from(externalTypes).sort();
-    const allTypeNamesForExport = [...allTypeNames, ...allExternalTypeNames];
+    const _allTypeNamesForExport = [...allTypeNames, ...allExternalTypeNames];
 
     const exports = `\nmodule.exports = {\n  EventName,\n  EventTypes\n};\n`;
 

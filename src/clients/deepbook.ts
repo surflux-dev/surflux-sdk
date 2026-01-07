@@ -6,11 +6,10 @@ import {
   GetOrderBookParams,
   GetTradesParams,
   GetOHLCVParams,
-} from './types';
-import { httpRequest } from './http-client';
-import { isValidApiKey } from './utils';
-import { getApiBaseUrl } from './constants';
-import { buildQueryParams } from './query-utils';
+  SurfluxNetwork,
+} from '../types';
+import { buildQueryParams, isValidApiKey, httpRequest } from '../utils';
+import { getApiBaseUrl } from '../constants';
 
 /**
  * Client for interacting with the Surflux Deepbook API.
@@ -24,14 +23,15 @@ export class DeepbookClient {
    * Creates a new DeepbookClient instance.
    *
    * @param apiKey - Your Surflux API key
-   * @param network - Network to use ('mainnet' or 'testnet')
+   * @param network - Network to use ('mainnet', 'testnet', 'custom')
+   * @param customUrl - Optional custom URL to use. If provided and network is CUSTOM, it will override the network-specific URL.
    */
-  constructor(apiKey: string | undefined, network: string) {
+  constructor(apiKey: string | undefined, network: SurfluxNetwork, customUrl?: string) {
     if (!isValidApiKey(apiKey)) {
       throw new Error('Surflux API key is required. Please provide a valid API key.');
     }
     this.apiKey = apiKey;
-    this.baseUrl = getApiBaseUrl(network);
+    this.baseUrl = getApiBaseUrl(network, customUrl);
   }
 
   /**
