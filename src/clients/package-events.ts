@@ -1,7 +1,6 @@
 import {
   getEventSourceClass,
   getCreateEventSource,
-  isBrowser,
   isEventSourceAvailable,
   matchesPattern,
   type EventHandler,

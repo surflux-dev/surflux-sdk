@@ -188,7 +188,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
 
         // Only all-updates supports type filter
         if (this.streamType === DeepbookStreamType.ALL_UPDATES && 'type' in params) {
-          const { type } = params as ReceiveAllUpdatesParams;
+          const { type } = params;
           if (type !== undefined) {
             queryParams.push(`type=${encodeURIComponent(type)}`);
           }
