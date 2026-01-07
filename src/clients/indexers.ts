@@ -1,6 +1,6 @@
 import { SurfluxNetwork } from '../types';
-import { DeepbookClient } from './deepbook-client';
-import { NFTClient } from './nft-client';
+import { DeepbookClient } from './deepbook';
+import { NFTClient } from './nft';
 import { isValidApiKey } from '../utils';
 
 /**
@@ -37,5 +37,5 @@ export class SurfluxIndexersClient {
   }
 }
 
-export type { DeepbookClient } from './deepbook-client';
-export type { NFTClient } from './nft-client';
+export type { DeepbookClient } from './deepbook';
+export type { NFTClient } from './nft';
