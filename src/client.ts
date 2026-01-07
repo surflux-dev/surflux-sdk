@@ -17,6 +17,7 @@ import {
   CACHE_KEYS,
 } from './utils';
 import { getFluxBaseUrl } from './constants';
+import { SurfluxNetwork } from './types';
 
 export type { CacheMethods } from './utils';
 
@@ -28,7 +29,7 @@ if (isEventSourceAvailable()) {
 } else {
   try {
     createEventSource = getCreateEventSource();
-  } catch {}
+  } catch { }
 }
 
 /**
@@ -68,7 +69,14 @@ interface SurfluxPackageEvent {
  */
 export interface SurfluxPackageEventsClientConfig {
   streamKey: string;
-  network?: string;
+  /**
+   * Optional network to use. If not provided, 'mainnet' will be used.
+   */
+  network?: SurfluxNetwork;
+  /**
+   * Optional custom URL to use. If provided and network is CUSTOM, it will override the network-specific URL.
+   */
+  customUrl?: string;
   /**
    * Optional timestamp in milliseconds. Only events newer than this timestamp will be processed.
    * If not provided, the cached timestamp will be used (if available).
@@ -88,7 +96,7 @@ export interface SurfluxPackageEventsClientConfig {
  */
 export class SurfluxPackageEventsClient {
   private readonly streamKey: string;
-  private readonly network: string;
+  private readonly sseUrl: string;
   private fromTimestampMs?: number;
   private readonly cache: EventCache;
   private readonly cacheKey: string;
@@ -99,7 +107,10 @@ export class SurfluxPackageEventsClient {
 
   constructor(config: SurfluxPackageEventsClientConfig) {
     this.streamKey = config.streamKey;
-    this.network = config.network ?? 'testnet';
+
+    const baseUrl = getFluxBaseUrl(config.network ?? SurfluxNetwork.MAINNET, config.customUrl);
+    this.sseUrl = `${baseUrl}/events?api-key=${this.streamKey}`;
+
     this.fromTimestampMs = config.fromTimestampMs;
     this.cache = createCache(config.cache);
     this.cacheKey = CACHE_KEYS.PACKAGE_EVENTS;
@@ -117,14 +128,11 @@ export class SurfluxPackageEventsClient {
         return;
       }
 
-      const baseUrl = getFluxBaseUrl(this.network);
-      const SSE_URL = `${baseUrl}/events?api-key=${this.streamKey}`;
-
       const isBrowserEnv = isEventSourceAvailable();
 
       try {
         if (isBrowserEnv && EventSourceClass) {
-          this.eventSource = new EventSourceClass(SSE_URL);
+          this.eventSource = new EventSourceClass(this.sseUrl);
           this.eventSource.addEventListener('open', () => {
             console.log('Connected to Surflux event stream');
             this.isConnected = true;
@@ -172,7 +180,7 @@ export class SurfluxPackageEventsClient {
           };
 
           this.eventSource = createEventSource({
-            url: SSE_URL,
+            url: this.sseUrl,
             headers: {
               Accept: 'text/event-stream',
               'Cache-Control': 'no-cache',
@@ -329,9 +337,9 @@ export class SurfluxPackageEventsClient {
 
       const timeoutId = timeout
         ? setTimeout(() => {
-            this.off(eventType, handler as EventHandler<unknown>);
-            reject(new Error(`Timeout waiting for event: ${eventType}`));
-          }, timeout)
+          this.off(eventType, handler as EventHandler<unknown>);
+          reject(new Error(`Timeout waiting for event: ${eventType}`));
+        }, timeout)
         : null;
 
       this.on(eventType, handler);

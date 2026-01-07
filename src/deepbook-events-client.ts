@@ -4,6 +4,7 @@ import {
   DeepbookStreamType,
   ReceiveAllUpdatesParams,
   ReceiveLiveTradesParams,
+  SurfluxNetwork,
 } from './types';
 import {
   getEventSourceClass,
@@ -33,7 +34,7 @@ if (isEventSourceAvailable()) {
 } else {
   try {
     createEventSource = getCreateEventSource();
-  } catch {}
+  } catch { }
 }
 
 // Type helper to get the event type based on stream type
@@ -46,12 +47,12 @@ type StreamEventType<T extends DeepbookStreamType> = T extends DeepbookStreamTyp
 // Type helper to get allowed event type strings based on stream type
 type AllowedEventType<T extends DeepbookStreamType> = T extends DeepbookStreamType.ALL_UPDATES
   ?
-      | 'deepbook_live_trades'
-      | 'deepbook_order_book_depth'
-      | 'deepbook_all_updates_canceled'
-      | 'deepbook_all_updates_placed'
-      | 'deepbook_all_updates_modified'
-      | 'deepbook_all_updates_expired'
+  | 'deepbook_live_trades'
+  | 'deepbook_order_book_depth'
+  | 'deepbook_all_updates_canceled'
+  | 'deepbook_all_updates_placed'
+  | 'deepbook_all_updates_modified'
+  | 'deepbook_all_updates_expired'
   : T extends DeepbookStreamType.LIVE_TRADES
   ? 'deepbook_live_trades' | 'deepbook_order_book_depth'
   : never;
@@ -63,7 +64,14 @@ export interface SurfluxDeepbookEventsClientConfig<T extends DeepbookStreamType 
   streamKey: string;
   poolName: string;
   streamType: T;
-  network?: string;
+  /**
+   * Optional network to use. If not provided, 'mainnet' will be used.
+   */
+  network?: SurfluxNetwork;
+  /**
+   * Optional custom URL to use. If provided and network is CUSTOM, it will override the network-specific URL.
+   */
+  customUrl?: string;
   /**
    * Optional timestamp in milliseconds. Only events newer than this timestamp will be processed.
    * If not provided, the cached timestamp will be used (if available).
@@ -133,7 +141,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
     this.streamKey = config.streamKey;
     this.poolName = config.poolName;
     this.streamType = config.streamType;
-    this.baseUrl = getFluxBaseUrl(config.network ?? 'testnet');
+    this.baseUrl = getFluxBaseUrl(config.network ?? SurfluxNetwork.MAINNET, config.customUrl);
     this.fromTimestampMs = config.fromTimestampMs;
     this.cache = createCache(config.cache);
     this.cacheKey = CACHE_KEYS.DEEPBOOK_EVENTS;
@@ -416,9 +424,9 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
     return new Promise((resolve, reject) => {
       const timeoutId = timeout
         ? setTimeout(() => {
-            this.off(eventType, handler);
-            reject(new Error(`Timeout waiting for event: ${eventType}`));
-          }, timeout)
+          this.off(eventType, handler);
+          reject(new Error(`Timeout waiting for event: ${eventType}`));
+        }, timeout)
         : null;
 
       const handler = (event: unknown) => {
