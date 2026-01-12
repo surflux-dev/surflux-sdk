@@ -8,7 +8,7 @@ import {
   GetCollectionHoldersParams,
   SurfluxNetwork,
 } from '../types';
-import { buildQueryParams, httpRequest, isValidApiKey } from '../utils';
+import { buildQueryParams, httpRequest } from '../utils';
 import { getApiBaseUrl } from '../constants';
 
 /**
@@ -26,10 +26,7 @@ export class NFTClient {
    * @param network - Network to use ('mainnet', 'testnet', 'custom')
    * @param customUrl - Optional custom URL to use. If provided and network is CUSTOM, it will override the network-specific URL.
    */
-  constructor(apiKey: string | undefined, network: SurfluxNetwork, customUrl?: string) {
-    if (!isValidApiKey(apiKey)) {
-      throw new Error('Surflux API key is required. Please provide a valid API key.');
-    }
+  constructor(apiKey: string, network: SurfluxNetwork, customUrl?: string) {
     this.apiKey = apiKey;
     this.baseUrl = getApiBaseUrl(network, customUrl);
   }

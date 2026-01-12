@@ -9,7 +9,6 @@ import {
 import {
   getEventSourceClass,
   getCreateEventSource,
-  isValidApiKey,
   isEventSourceAvailable,
   matchesPattern,
   type EventHandler,
@@ -135,7 +134,8 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
    * ```
    */
   constructor(config: SurfluxDeepbookEventsClientConfig<T>) {
-    if (!isValidApiKey(config.streamKey)) {
+    if (!config.streamKey) {
+      // TODO: Implement validation
       throw new Error('Surflux stream key is required. Please provide a valid stream key.');
     }
     this.streamKey = config.streamKey;
