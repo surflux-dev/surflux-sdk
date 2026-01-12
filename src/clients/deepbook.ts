@@ -17,7 +17,14 @@ import { getApiBaseUrl } from '../constants';
 
 /**
  * Client for interacting with the Surflux Deepbook API.
- * Provides methods to query trading pools, order books, trades, and OHLCV data.
+ *
+ * @example
+ * ```typescript
+ * const client = new SurfluxDeepbookClient({
+ *   apiKey: 'your-api-key',
+ *   network: SurfluxNetwork.TESTNET
+ * });
+ * ```
  */
 export class SurfluxDeepbookClient {
   private readonly apiKey: string;
@@ -27,7 +34,10 @@ export class SurfluxDeepbookClient {
    * Creates a new SurfluxDeepbookClient instance.
    *
    * @param config - Configuration object
-  */
+   * @param config.apiKey - Your Surflux API key
+   * @param config.network - Network to use (mainnet, testnet, or custom)
+   * @param config.customUrl - Optional custom URL (required when network is CUSTOM)
+   */
   constructor(config: SurfluxClientConfig) {
     __validateIndexerClientConfig(config);
 
@@ -162,8 +172,8 @@ export class SurfluxDeepbookClient {
 
   /**
    * Validates pool name format.
-   * Pool names should be non-empty strings matching the pattern BASE-QUOTE (e.g., 'SUI-USDC').
    *
+   * @private
    * @param poolName - The pool name to validate
    * @throws {Error} If pool name is invalid
    */
@@ -196,6 +206,7 @@ export class SurfluxDeepbookClient {
   /**
    * Validates timeframe value.
    *
+   * @private
    * @param timeframe - The timeframe to validate
    * @throws {Error} If timeframe is invalid
    */
@@ -219,6 +230,7 @@ export class SurfluxDeepbookClient {
   /**
    * Validates timestamp range (from < to).
    *
+   * @private
    * @param from - Start timestamp in seconds
    * @param to - End timestamp in seconds
    * @throws {Error} If timestamp range is invalid
@@ -253,6 +265,7 @@ export class SurfluxDeepbookClient {
   /**
    * Validates limit parameter bounds.
    *
+   * @private
    * @param limit - The limit value to validate
    * @param maxLimit - Maximum allowed limit (default: 1000)
    * @param minLimit - Minimum allowed limit (default: 1)
