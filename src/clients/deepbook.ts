@@ -6,32 +6,29 @@ import {
   GetOrderBookParams,
   GetTradesParams,
   GetOHLCVParams,
-  SurfluxNetwork,
+  SurfluxClientConfig,
 } from '../types';
-import { buildQueryParams, isValidApiKey, httpRequest } from '../utils';
+import { __validateIndexerClientConfig, buildQueryParams, httpRequest } from '../utils';
 import { getApiBaseUrl } from '../constants';
 
 /**
  * Client for interacting with the Surflux Deepbook API.
  * Provides methods to query trading pools, order books, trades, and OHLCV data.
  */
-export class DeepbookClient {
-  private apiKey: string;
-  private baseUrl: string;
+export class SurfluxDeepbookClient {
+  private readonly apiKey: string;
+  private readonly baseUrl: string;
 
   /**
-   * Creates a new DeepbookClient instance.
+   * Creates a new SurfluxDeepbookClient instance.
    *
-   * @param apiKey - Your Surflux API key
-   * @param network - Network to use ('mainnet', 'testnet', 'custom')
-   * @param customUrl - Optional custom URL to use. If provided and network is CUSTOM, it will override the network-specific URL.
-   */
-  constructor(apiKey: string | undefined, network: SurfluxNetwork, customUrl?: string) {
-    if (!isValidApiKey(apiKey)) {
-      throw new Error('Surflux API key is required. Please provide a valid API key.');
-    }
-    this.apiKey = apiKey;
-    this.baseUrl = getApiBaseUrl(network, customUrl);
+   * @param config - Configuration object
+  */
+  constructor(config: SurfluxClientConfig) {
+    __validateIndexerClientConfig(config);
+
+    this.apiKey = config.apiKey;
+    this.baseUrl = getApiBaseUrl(config.network, config.customUrl);
   }
 
   /**

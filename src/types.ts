@@ -341,3 +341,21 @@ export interface ReceiveAllUpdatesParams {
 export interface ReceiveLiveTradesParams {
   lastId?: string;
 }
+
+/**
+ * Configuration options for SurfluxClient
+*/
+export interface SurfluxClientConfig {
+  /**
+   * Your Surflux API key
+   */
+  apiKey: string;
+  /**
+   * Network to use ('mainnet', 'testnet', 'custom')
+   */
+  network: SurfluxNetwork;
+  /**
+   * Optional custom URL to use. If provided and network is CUSTOM, it will override the network-specific URL.
+   */
+  customUrl?: string;
+}
