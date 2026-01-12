@@ -6,46 +6,32 @@ import {
   GetNFTsForOwnerParams,
   GetNFTsForCollectionParams,
   GetCollectionHoldersParams,
-  SurfluxNetwork,
+  SurfluxClientConfig,
 } from '../types';
-import { buildQueryParams, httpRequest } from '../utils';
+import { __validateIndexerClientConfig, buildQueryParams, httpRequest } from '../utils';
 import { getApiBaseUrl } from '../constants';
 
 /**
  * Client for interacting with the Surflux NFT API.
  * Provides methods to query NFT collections, tokens, and holders.
  */
-export class NFTClient {
-  private apiKey: string;
-  private baseUrl: string;
+export class SurfluxNFTClient {
+  private readonly apiKey: string;
+  private readonly baseUrl: string;
 
   /**
-   * Creates a new NFTClient instance.
+   * Creates a new SurfluxNFTClient instance.
    *
-   * @param apiKey - Your Surflux API key
-   * @param network - Network to use ('mainnet', 'testnet', 'custom')
-   * @param customUrl - Optional custom URL to use. If provided and network is CUSTOM, it will override the network-specific URL.
+   * @param config - Configuration object
+   * @param config.apiKey - Your Surflux API key
+   * @param config.network - Network to use ('mainnet', 'testnet', 'custom')
+   * @param config.customUrl - Optional custom URL to use. If provided and network is CUSTOM, it will override the network-specific URL.
    */
-  constructor(apiKey: string, network: SurfluxNetwork, customUrl?: string) {
-    this.apiKey = apiKey;
-    this.baseUrl = getApiBaseUrl(network, customUrl);
-  }
+  constructor(config: SurfluxClientConfig) {
+    __validateIndexerClientConfig(config);
 
-  /**
-   * Internal method to make requests to the NFT API.
-   *
-   * @param endpoint - The API endpoint path
-   * @param params - Optional query parameters
-   * @returns A promise that resolves to the response data
-   * @private
-   */
-  private async request<T>(endpoint: string, params?: Record<string, unknown>): Promise<T> {
-    const url = `${this.baseUrl}/nfts${endpoint}`;
-
-    return httpRequest<T>(url, {
-      apiKey: this.apiKey,
-      params: params,
-    });
+    this.apiKey = config.apiKey;
+    this.baseUrl = getApiBaseUrl(config.network, config.customUrl);
   }
 
   /**
@@ -61,7 +47,11 @@ export class NFTClient {
    * ```
    */
   async getNFTById(params: GetNFTByIdParams): Promise<NFTToken> {
-    return this.request<NFTToken>(`/${params.object_id}`);
+    const url = `${this.baseUrl}/nfts/${params.object_id}`;
+
+    return httpRequest<NFTToken>(url, {
+      apiKey: this.apiKey,
+    });
   }
 
   /**
@@ -91,7 +81,12 @@ export class NFTClient {
       perPage: per_page,
     });
 
-    return this.request<NftsResponseDto>(`/address/${address}`, queryParams);
+    const url = `${this.baseUrl}/nfts/address/${address}`;
+
+    return httpRequest<NftsResponseDto>(url, {
+      apiKey: this.apiKey,
+      params: queryParams,
+    });
   }
 
   /**
@@ -123,7 +118,12 @@ export class NFTClient {
 
     const encodedType = encodeURIComponent(type);
 
-    return this.request<NftsResponseDto>(`/collection/${encodedType}`, queryParams);
+    const url = `${this.baseUrl}/nfts/collection/${encodedType}`;
+
+    return httpRequest<NftsResponseDto>(url, {
+      apiKey: this.apiKey,
+      params: queryParams,
+    });
   }
 
   /**
@@ -153,6 +153,11 @@ export class NFTClient {
 
     const encodedType = encodeURIComponent(type);
 
-    return this.request<CollectionHoldersDto>(`/collection/${encodedType}/holders`, queryParams);
+    const url = `${this.baseUrl}/nfts/collection/${encodedType}/holders`;
+
+    return httpRequest<CollectionHoldersDto>(url, {
+      apiKey: this.apiKey,
+      params: queryParams,
+    });
   }
 }
