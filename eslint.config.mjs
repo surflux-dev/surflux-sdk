@@ -72,6 +72,7 @@ export default [
       'node_modules/**',
       'dist/**',
       'coverage/**',
+      'examples/**',
       '*.js',
       '!jest.config.js',
       '*.d.ts',

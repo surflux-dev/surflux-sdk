@@ -71,14 +71,21 @@ client.on('0x123::module::*', (event) => {
 
 ## NFT API
 
+### Using SurfluxNFTClient
+
+```typescript
+import { SurfluxNFTClient, SurfluxNetwork } from '@surflux/sdk';
+
+const client = new SurfluxNFTClient({
+  apiKey: 'your-api-key',
+  network: SurfluxNetwork.TESTNET
+});
+```
+
 ### Get NFT by ID
 
 ```typescript
-import { SurfluxIndexersClient } from '@surflux/sdk';
-
-const client = new SurfluxIndexersClient('api-key', 'testnet');
-
-const nft = await client.nft.getNFTById({
+const nft = await client.getNFTById({
   object_id: '0x123...'
 });
 ```
@@ -86,7 +93,7 @@ const nft = await client.nft.getNFTById({
 ### Get NFTs for Owner
 
 ```typescript
-const result = await client.nft.getNFTsForOwner({
+const result = await client.getNFTsForOwner({
   address: '0x123...',
   page: 1,
   per_page: 20
@@ -101,7 +108,7 @@ console.log(result.perPage); // number
 ### Get NFTs for Collection
 
 ```typescript
-const result = await client.nft.getNFTsForCollection({
+const result = await client.getNFTsForCollection({
   type: '0x123::duck_nft::DuckNFT',
   page: 1,
   per_page: 10
@@ -111,25 +118,38 @@ const result = await client.nft.getNFTsForCollection({
 ### Get Collection Holders
 
 ```typescript
-const holders = await client.nft.getCollectionHolders({
+const holders = await client.getCollectionHolders({
   type: '0x123::duck_nft::DuckNFT',
   page: 1,
   per_page: 50
 });
 ```
 
+For more detailed examples, see the [examples directory](./examples/).
+
 ## Deepbook API
+
+### Using SurfluxDeepbookClient
+
+```typescript
+import { SurfluxDeepbookClient, SurfluxNetwork } from '@surflux/sdk';
+
+const client = new SurfluxDeepbookClient({
+  apiKey: 'your-api-key',
+  network: SurfluxNetwork.TESTNET
+});
+```
 
 ### Get All Pools
 
 ```typescript
-const pools = await client.deepbook.getPools();
+const pools = await client.getPools();
 ```
 
 ### Get Trades
 
 ```typescript
-const trades = await client.deepbook.getTrades({
+const trades = await client.getTrades({
   pool_name: 'SUI-USDC',
   from: 1699999999,
   to: 1700000000,
@@ -140,7 +160,7 @@ const trades = await client.deepbook.getTrades({
 ### Get Order Book
 
 ```typescript
-const orderBook = await client.deepbook.getOrderBook({
+const orderBook = await client.getOrderBook({
   pool_name: 'SUI-USDC',
   limit: 20
 });
@@ -149,7 +169,7 @@ const orderBook = await client.deepbook.getOrderBook({
 ### Get OHLCV Candles
 
 ```typescript
-const candles = await client.deepbook.getOHLCV({
+const candles = await client.getOHLCV({
   pool_name: 'SUI-USDC',
   timeframe: '1h',
   from: 1699999999,
@@ -157,6 +177,8 @@ const candles = await client.deepbook.getOHLCV({
   limit: 100
 });
 ```
+
+For more detailed examples, see the [examples directory](./examples/).
 
 ## Deepbook Event Streaming
 

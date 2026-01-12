@@ -1,5 +1,7 @@
 # Surflux SDK Examples
 
+> ⚠️ **Work in Progress**: These examples are currently under development and may be incomplete or subject to change. Use them as a reference, but please verify the API documentation for the most up-to-date information.
+
 This directory contains example code demonstrating how to use the Surflux SDK.
 
 ## Deepbook Examples
@@ -76,6 +78,62 @@ Or with tsx:
 SURFLUX_API_KEY=your-api-key npx tsx examples/deepbook-orderbook-analysis.ts
 ```
 
+## NFT Examples
+
+### Basic Usage (`nft-basic.ts`)
+
+Demonstrates basic usage of the `SurfluxNFTClient`:
+- Fetching an NFT by object ID
+- Getting NFTs for an owner
+- Retrieving NFTs in a collection
+- Fetching collection holders
+
+**Run:**
+```bash
+SURFLUX_API_KEY=your-api-key npx ts-node examples/nft-basic.ts
+```
+
+Or with tsx:
+```bash
+SURFLUX_API_KEY=your-api-key npx tsx examples/nft-basic.ts
+```
+
+### Collection Explorer (`nft-collection-explorer.ts`)
+
+Shows how to explore NFT collections:
+- Fetching all NFTs in a collection with pagination
+- Analyzing collection statistics
+- Viewing collection holders
+- Filtering NFTs by fields
+
+**Run:**
+```bash
+SURFLUX_API_KEY=your-api-key npx ts-node examples/nft-collection-explorer.ts
+```
+
+Or with tsx:
+```bash
+SURFLUX_API_KEY=your-api-key npx tsx examples/nft-collection-explorer.ts
+```
+
+### Owner Portfolio (`nft-owner-portfolio.ts`)
+
+Demonstrates viewing an owner's NFT portfolio:
+- Fetching all NFTs owned by an address
+- Grouping NFTs by collection
+- Analyzing portfolio composition
+- Filtering by collection types
+
+**Run:**
+```bash
+SURFLUX_API_KEY=your-api-key npx ts-node examples/nft-owner-portfolio.ts
+```
+
+Or with tsx:
+```bash
+SURFLUX_API_KEY=your-api-key npx tsx examples/nft-owner-portfolio.ts
+```
+
 ## Prerequisites
 
 - Node.js 18+
@@ -120,6 +178,9 @@ npx ts-node examples/deepbook-basic.ts
 npx ts-node examples/deepbook-trades-analysis.ts
 npx ts-node examples/deepbook-ohlcv-chart.ts
 npx ts-node examples/deepbook-orderbook-analysis.ts
+npx ts-node examples/nft-basic.ts
+npx ts-node examples/nft-collection-explorer.ts
+npx ts-node examples/nft-owner-portfolio.ts
 ```
 
 ### Using tsx (Recommended - Faster)
@@ -133,6 +194,9 @@ npx tsx examples/deepbook-basic.ts
 npx tsx examples/deepbook-trades-analysis.ts
 npx tsx examples/deepbook-ohlcv-chart.ts
 npx tsx examples/deepbook-orderbook-analysis.ts
+npx tsx examples/nft-basic.ts
+npx tsx examples/nft-collection-explorer.ts
+npx tsx examples/nft-owner-portfolio.ts
 ```
 
 ### Using Node.js with compiled JavaScript
