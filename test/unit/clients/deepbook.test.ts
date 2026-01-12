@@ -618,5 +618,275 @@ describe('DeepbookClient', () => {
   //     );
   //   });
   // });
+
+  describe('Input Validation', () => {
+    // let client: SurfluxDeepbookClient;
+
+    // beforeEach(() => {
+    //   client = new SurfluxDeepbookClient({ apiKey: validApiKey, network: SurfluxNetwork.TESTNET });
+    // });
+
+    // describe('Pool name validation', () => {
+    //   it('should pass for valid pool names', async () => {
+    //     mockHttpRequest.mockResolvedValue([]);
+
+    //     await expect(client.getTrades({ pool_name: 'SUI-USDC' })).resolves.toBeDefined();
+    //     await expect(client.getTrades({ pool_name: 'SUI-USDT' })).resolves.toBeDefined();
+    //     await expect(client.getTrades({ pool_name: 'ETH-SUI' })).resolves.toBeDefined();
+    //     await expect(client.getTrades({ pool_name: 'POOL_NAME_WITH_UNDERSCORES' })).resolves.toBeDefined();
+    //   });
+
+    //   it('should throw error for undefined pool name', async () => {
+    //     await expect(
+    //       client.getTrades({ pool_name: undefined as unknown as string })
+    //     ).rejects.toThrow('Pool name is required and must be a non-empty string.');
+    //   });
+
+    //   it('should throw error for empty string', async () => {
+    //     await expect(client.getTrades({ pool_name: '' })).rejects.toThrow(
+    //       'Pool name is required and must be a non-empty string.'
+    //     );
+    //   });
+
+    //   it('should throw error for whitespace-only string', async () => {
+    //     await expect(client.getTrades({ pool_name: '   ' })).rejects.toThrow(
+    //       'Pool name cannot be empty.'
+    //     );
+    //   });
+
+    //   it('should throw error for pool name without hyphen or underscore', async () => {
+    //     await expect(client.getTrades({ pool_name: 'SUIUSDC' })).rejects.toThrow(
+    //       'Invalid pool name format: "SUIUSDC". Pool name should contain at least one hyphen or underscore (e.g., \'SUI-USDC\' or \'POOL_NAME\').'
+    //     );
+    //   });
+
+    //   it('should throw error for invalid characters', async () => {
+    //     await expect(client.getTrades({ pool_name: 'SUI-USDC!' })).rejects.toThrow(
+    //       'Invalid pool name format: "SUI-USDC!". Pool name can only contain alphanumeric characters, hyphens, and underscores.'
+    //     );
+    //     await expect(client.getTrades({ pool_name: 'SUI-USDC@' })).rejects.toThrow();
+    //     await expect(client.getTrades({ pool_name: 'SUI-USDC#' })).rejects.toThrow();
+    //   });
+
+    //   it('should throw error for non-string types', async () => {
+    //     await expect(
+    //       client.getTrades({ pool_name: null as unknown as string })
+    //     ).rejects.toThrow('Pool name is required and must be a non-empty string.');
+    //     await expect(client.getTrades({ pool_name: 123 as unknown as string })).rejects.toThrow();
+    //   });
+    // });
+
+    // describe('Timeframe validation', () => {
+    //   it('should pass for valid timeframes', async () => {
+    //     mockHttpRequest.mockResolvedValue([]);
+
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '1m' })
+    //     ).resolves.toBeDefined();
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '5m' })
+    //     ).resolves.toBeDefined();
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '15m' })
+    //     ).resolves.toBeDefined();
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '1h' })
+    //     ).resolves.toBeDefined();
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '4h' })
+    //     ).resolves.toBeDefined();
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '1d' })
+    //     ).resolves.toBeDefined();
+    //   });
+
+    //   it('should throw error for undefined timeframe', async () => {
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: undefined as unknown as '1m' })
+    //     ).rejects.toThrow('Timeframe is required. Valid values: 1m, 5m, 15m, 1h, 4h, 1d.');
+    //   });
+
+    //   it('should throw error for invalid timeframe', async () => {
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '2h' as '1m' })
+    //     ).rejects.toThrow('Invalid timeframe: "2h". Valid values: 1m, 5m, 15m, 1h, 4h, 1d.');
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '1w' as '1m' })
+    //     ).rejects.toThrow();
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: 'invalid' as '1m' })
+    //     ).rejects.toThrow();
+    //   });
+
+    //   it('should throw error for non-string types', async () => {
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: null as unknown as '1m' })
+    //     ).rejects.toThrow();
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: 123 as unknown as '1m' })
+    //     ).rejects.toThrow();
+    //   });
+    // });
+
+    // describe('Timestamp range validation', () => {
+    //   it('should pass for valid timestamp ranges', async () => {
+    //     mockHttpRequest.mockResolvedValue([]);
+
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', from: 1699999999, to: 1700000000 })
+    //     ).resolves.toBeDefined();
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', from: 1000, to: 2000 })
+    //     ).resolves.toBeDefined();
+    //   });
+
+    //   it('should pass when from is undefined', async () => {
+    //     mockHttpRequest.mockResolvedValue([]);
+
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', from: undefined, to: 1700000000 })
+    //     ).resolves.toBeDefined();
+    //   });
+
+    //   it('should pass when to is undefined', async () => {
+    //     mockHttpRequest.mockResolvedValue([]);
+
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', from: 1699999999, to: undefined })
+    //     ).resolves.toBeDefined();
+    //   });
+
+    //   it('should pass when both are undefined', async () => {
+    //     mockHttpRequest.mockResolvedValue([]);
+
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', from: undefined, to: undefined })
+    //     ).resolves.toBeDefined();
+    //   });
+
+    //   it('should throw error when from >= to', async () => {
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', from: 1700000000, to: 1699999999 })
+    //     ).rejects.toThrow(
+    //       'Invalid timestamp range: "from" (1700000000) must be less than "to" (1699999999).'
+    //     );
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', from: 1700000000, to: 1700000000 })
+    //     ).rejects.toThrow(
+    //       'Invalid timestamp range: "from" (1700000000) must be less than "to" (1700000000).'
+    //     );
+    //   });
+
+    //   it('should throw error for negative timestamps', async () => {
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', from: -1, to: 1700000000 })
+    //     ).rejects.toThrow('Timestamps must be positive numbers.');
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', from: 1699999999, to: -1 })
+    //     ).rejects.toThrow('Timestamps must be positive numbers.');
+    //   });
+
+    //   it('should throw error for non-number types', async () => {
+    //     await expect(
+    //       client.getTrades({
+    //         pool_name: 'SUI-USDC',
+    //         from: 'invalid' as unknown as number,
+    //         to: 1700000000,
+    //       })
+    //     ).rejects.toThrow('Timestamps must be numbers (Unix timestamp in seconds).');
+    //     await expect(
+    //       client.getTrades({
+    //         pool_name: 'SUI-USDC',
+    //         from: 1699999999,
+    //         to: 'invalid' as unknown as number,
+    //       })
+    //     ).rejects.toThrow();
+    //   });
+
+    //   it('should throw error for timestamps too far in the future', async () => {
+    //     const futureTimestamp = Math.floor(Date.now() / 1000) + 86401; // 24 hours + 1 second
+    //     await expect(
+    //       client.getTrades({
+    //         pool_name: 'SUI-USDC',
+    //         from: futureTimestamp,
+    //         to: futureTimestamp + 1000,
+    //       })
+    //     ).rejects.toThrow('Timestamps cannot be more than 24 hours in the future.');
+    //   });
+    // });
+
+    // describe('Limit validation', () => {
+    //   it('should pass for valid limits', async () => {
+    //     mockHttpRequest.mockResolvedValue([]);
+
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 1 })
+    //     ).resolves.toBeDefined();
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 100 })
+    //     ).resolves.toBeDefined();
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 1000 })
+    //     ).resolves.toBeDefined();
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', limit: undefined })
+    //     ).resolves.toBeDefined();
+    //   });
+
+    //   it('should throw error for limit below minimum', async () => {
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 0 })
+    //     ).rejects.toThrow('Limit must be at least 1, got: 0.');
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', limit: -1 })
+    //     ).rejects.toThrow('Limit must be at least 1, got: -1.');
+    //   });
+
+    //   it('should throw error for limit above maximum', async () => {
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 1001 })
+    //     ).rejects.toThrow('Limit cannot exceed 1000, got: 1001.');
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 2000 })
+    //     ).rejects.toThrow('Limit cannot exceed 1000, got: 2000.');
+    //   });
+
+    //   it('should throw error for non-integer limits', async () => {
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 1.5 })
+    //     ).rejects.toThrow('Limit must be an integer, got: 1.5.');
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 100.99 })
+    //     ).rejects.toThrow('Limit must be an integer, got: 100.99.');
+    //   });
+
+    //   it('should throw error for non-number types', async () => {
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', limit: '100' as unknown as number })
+    //     ).rejects.toThrow('Limit must be a number, got: string.');
+    //     await expect(
+    //       client.getTrades({ pool_name: 'SUI-USDC', limit: null as unknown as number })
+    //     ).rejects.toThrow();
+    //   });
+
+    //   it('should validate limit in getOrderBook', async () => {
+    //     await expect(
+    //       client.getOrderBook({ pool_name: 'SUI-USDC', limit: 0 })
+    //     ).rejects.toThrow('Limit must be at least 1, got: 0.');
+    //     await expect(
+    //       client.getOrderBook({ pool_name: 'SUI-USDC', limit: 1001 })
+    //     ).rejects.toThrow('Limit cannot exceed 1000, got: 1001.');
+    //   });
+
+    //   it('should validate limit in getOHLCV', async () => {
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '1h', limit: 0 })
+    //     ).rejects.toThrow('Limit must be at least 1, got: 0.');
+    //     await expect(
+    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '1h', limit: 1001 })
+    //     ).rejects.toThrow('Limit cannot exceed 1000, got: 1001.');
+    //   });
+    // });
+  });
 });
 

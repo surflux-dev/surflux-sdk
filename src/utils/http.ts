@@ -77,20 +77,45 @@ export async function httpRequest<T = unknown>(
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<{ message?: string; error?: string }>;
-      let errorMessage = `${axiosError.response?.status || 'Unknown'} ${axiosError.response?.statusText || 'Error'
-        }`;
+      const status = axiosError.response?.status;
+      const statusText = axiosError.response?.statusText || 'Error';
+      let errorMessage = `API error: ${status || 'Unknown'} ${statusText}`;
 
       if (axiosError.response?.data) {
         const errorData = axiosError.response.data;
         if (errorData.message) {
-          errorMessage = errorData.message;
+          errorMessage = `API error: ${errorData.message}`;
         } else if (errorData.error) {
-          errorMessage = errorData.error;
+          errorMessage = `API error: ${errorData.error}`;
         }
       }
 
-      throw new Error(`API error: ${errorMessage}`);
+      // Add URL context for better debugging
+      if (status === 404) {
+        errorMessage += ` (Resource not found: ${url})`;
+      } else if (status === 400) {
+        errorMessage += ` (Bad request: ${url})`;
+      } else if (status === 401 || status === 403) {
+        errorMessage += ' (Invalid or missing API key)';
+      } else if (status === 429) {
+        errorMessage += ' (Rate limit exceeded)';
+      } else if (status && status >= 500) {
+        errorMessage += ' (Server error)';
+      }
+
+      throw new Error(errorMessage);
     }
+
+    // Handle network errors
+    if (error instanceof Error) {
+      if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
+        throw new Error(`Network error: Unable to connect to API. ${error.message}`);
+      }
+      if (error.message.includes('timeout')) {
+        throw new Error(`Request timeout: The API request took too long to complete. ${error.message}`);
+      }
+    }
+
     throw error;
   }
 }
