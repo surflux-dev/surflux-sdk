@@ -28,6 +28,7 @@ export async function httpRequest<T = unknown>(
           } else if (typeof value === 'object') {
             urlObj.searchParams.set(key, JSON.stringify(value));
           } else {
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
             urlObj.searchParams.set(key, String(value));
           }
         }
@@ -48,6 +49,7 @@ export async function httpRequest<T = unknown>(
           } else if (typeof value === 'object') {
             searchParams.set(key, JSON.stringify(value));
           } else {
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
             searchParams.set(key, String(value));
           }
         }
@@ -75,9 +77,8 @@ export async function httpRequest<T = unknown>(
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<{ message?: string; error?: string }>;
-      let errorMessage = `${axiosError.response?.status || 'Unknown'} ${
-        axiosError.response?.statusText || 'Error'
-      }`;
+      let errorMessage = `${axiosError.response?.status || 'Unknown'} ${axiosError.response?.statusText || 'Error'
+        }`;
 
       if (axiosError.response?.data) {
         const errorData = axiosError.response.data;

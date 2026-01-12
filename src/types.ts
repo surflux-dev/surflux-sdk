@@ -2,6 +2,7 @@
 export enum SurfluxNetwork {
   TESTNET = 'testnet',
   MAINNET = 'mainnet',
+  CUSTOM = 'custom',
 }
 
 // Deepbook API Response Types

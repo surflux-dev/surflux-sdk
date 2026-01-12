@@ -1,24 +1,40 @@
-export const API_BASE_URLS = {
-  mainnet: {
+import { SurfluxNetwork } from "./types";
+
+const SURFLUX_API_BASE_URLS: Record<SurfluxNetwork, { api: string; flux: string }> = {
+  [SurfluxNetwork.MAINNET]: {
     api: 'https://api.surflux.dev',
     flux: 'https://flux.surflux.dev',
   },
-  testnet: {
+  [SurfluxNetwork.TESTNET]: {
     api: 'https://testnet-api.surflux.dev',
     flux: 'https://testnet-flux.surflux.dev',
   },
-} as const;
+  [SurfluxNetwork.CUSTOM]: {
+    api: '',
+    flux: '',
+  },
+};
 
-/**
- * Gets the API base URL for a given network
- */
-export function getApiBaseUrl(network: string): string {
-  return network === 'mainnet' ? API_BASE_URLS.mainnet.api : API_BASE_URLS.testnet.api;
+export function getApiBaseUrl(network: SurfluxNetwork, customUrl?: string): string {
+  if (network !== SurfluxNetwork.CUSTOM) {
+    return SURFLUX_API_BASE_URLS[network].api;
+  }
+
+  if (!customUrl) {
+    throw new Error('Custom URL is required for custom network');
+  }
+
+  return customUrl;
 }
 
-/**
- * Gets the Flux (SSE) base URL for a given network
- */
-export function getFluxBaseUrl(network: string): string {
-  return network === 'mainnet' ? API_BASE_URLS.mainnet.flux : API_BASE_URLS.testnet.flux;
+export function getFluxBaseUrl(network: SurfluxNetwork, customUrl?: string): string {
+  if (network !== SurfluxNetwork.CUSTOM) {
+    return SURFLUX_API_BASE_URLS[network].flux;
+  }
+
+  if (!customUrl) {
+    throw new Error('Custom URL is required for custom network');
+  }
+
+  return customUrl;
 }
