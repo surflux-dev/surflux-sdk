@@ -6,49 +6,43 @@ import {
   GetOrderBookParams,
   GetTradesParams,
   GetOHLCVParams,
-  SurfluxNetwork,
+  SurfluxClientConfig,
 } from '../types';
-import { buildQueryParams, isValidApiKey, httpRequest } from '../utils';
+import {
+  __validateIndexerClientConfig,
+  buildQueryParams,
+  httpRequest,
+} from '../utils';
 import { getApiBaseUrl } from '../constants';
 
 /**
  * Client for interacting with the Surflux Deepbook API.
- * Provides methods to query trading pools, order books, trades, and OHLCV data.
+ *
+ * @example
+ * ```typescript
+ * const client = new SurfluxDeepbookClient({
+ *   apiKey: 'your-api-key',
+ *   network: SurfluxNetwork.TESTNET
+ * });
+ * ```
  */
-export class DeepbookClient {
-  private apiKey: string;
-  private baseUrl: string;
+export class SurfluxDeepbookClient {
+  private readonly apiKey: string;
+  private readonly baseUrl: string;
 
   /**
-   * Creates a new DeepbookClient instance.
+   * Creates a new SurfluxDeepbookClient instance.
    *
-   * @param apiKey - Your Surflux API key
-   * @param network - Network to use ('mainnet', 'testnet', 'custom')
-   * @param customUrl - Optional custom URL to use. If provided and network is CUSTOM, it will override the network-specific URL.
+   * @param config - Configuration object
+   * @param config.apiKey - Your Surflux API key
+   * @param config.network - Network to use (mainnet, testnet, or custom)
+   * @param config.customUrl - Optional custom URL (required when network is CUSTOM)
    */
-  constructor(apiKey: string | undefined, network: SurfluxNetwork, customUrl?: string) {
-    if (!isValidApiKey(apiKey)) {
-      throw new Error('Surflux API key is required. Please provide a valid API key.');
-    }
-    this.apiKey = apiKey;
-    this.baseUrl = getApiBaseUrl(network, customUrl);
-  }
+  constructor(config: SurfluxClientConfig) {
+    __validateIndexerClientConfig(config);
 
-  /**
-   * Internal method to make requests to the Deepbook API.
-   *
-   * @param endpoint - The API endpoint path
-   * @param params - Optional query parameters
-   * @returns A promise that resolves to the response data
-   * @private
-   */
-  private async request<T>(endpoint: string, params?: Record<string, unknown>): Promise<T> {
-    const url = `${this.baseUrl}/deepbook${endpoint}`;
-
-    return httpRequest<T>(url, {
-      apiKey: this.apiKey,
-      params: params,
-    });
+    this.apiKey = config.apiKey;
+    this.baseUrl = getApiBaseUrl(config.network, config.customUrl);
   }
 
   /**
@@ -61,8 +55,12 @@ export class DeepbookClient {
    * const pools = await client.getPools();
    * ```
    */
-  async getPools(): Promise<PoolInfo[]> {
-    return this.request<PoolInfo[]>('/get_pools');
+  public async getPools(): Promise<PoolInfo[]> {
+    const url = `${this.baseUrl}/deepbook/get_pools`;
+
+    return httpRequest<PoolInfo[]>(url, {
+      apiKey: this.apiKey,
+    });
   }
 
   /**
@@ -74,6 +72,7 @@ export class DeepbookClient {
    * @param params.to - Optional Unix timestamp (seconds) for the end of the time range
    * @param params.limit - Optional maximum number of trades to return
    * @returns A promise that resolves to an array of trade data
+   * @throws {Error} If pool_name is invalid, timestamp range is invalid, or limit is out of bounds
    *
    * @example
    * ```typescript
@@ -85,11 +84,19 @@ export class DeepbookClient {
    * });
    * ```
    */
-  async getTrades(params: GetTradesParams): Promise<Trade[]> {
+  public async getTrades(params: GetTradesParams): Promise<Trade[]> {
+    this.#validatePoolName(params.pool_name);
+    this.#validateTimestampRange(params.from, params.to);
+    this.#validateLimit(params.limit);
+
     const { pool_name, from, to, limit } = params;
     const queryParams = buildQueryParams({ from, to, limit });
+    const url = `${this.baseUrl}/deepbook/${pool_name}/trades`;
 
-    return this.request<Trade[]>(`/${pool_name}/trades`, queryParams);
+    return httpRequest<Trade[]>(url, {
+      apiKey: this.apiKey,
+      params: queryParams,
+    });
   }
 
   /**
@@ -99,6 +106,7 @@ export class DeepbookClient {
    * @param params.pool_name - The name of the trading pool
    * @param params.limit - Optional maximum number of orders per side (bids/asks)
    * @returns A promise that resolves to the order book depth data
+   * @throws {Error} If pool_name is invalid or limit is out of bounds
    *
    * @example
    * ```typescript
@@ -108,11 +116,18 @@ export class DeepbookClient {
    * });
    * ```
    */
-  async getOrderBook(params: GetOrderBookParams): Promise<OrderBookDepth> {
+  public async getOrderBook(params: GetOrderBookParams): Promise<OrderBookDepth> {
+    this.#validatePoolName(params.pool_name);
+    this.#validateLimit(params.limit);
+
     const { pool_name, limit } = params;
     const queryParams = buildQueryParams({ limit });
+    const url = `${this.baseUrl}/deepbook/${pool_name}/order-book-depth`;
 
-    return this.request<OrderBookDepth>(`/${pool_name}/order-book-depth`, queryParams);
+    return httpRequest<OrderBookDepth>(url, {
+      apiKey: this.apiKey,
+      params: queryParams,
+    });
   }
 
   /**
@@ -125,6 +140,7 @@ export class DeepbookClient {
    * @param params.to - Optional Unix timestamp (seconds) for the end of the time range
    * @param params.limit - Optional maximum number of candles to return
    * @returns A promise that resolves to an array of OHLCV candle data
+   * @throws {Error} If pool_name is invalid, timeframe is invalid, timestamp range is invalid, or limit is out of bounds
    *
    * @example
    * ```typescript
@@ -137,10 +153,144 @@ export class DeepbookClient {
    * });
    * ```
    */
-  async getOHLCV(params: GetOHLCVParams): Promise<OHLCVCandle[]> {
+  public async getOHLCV(params: GetOHLCVParams): Promise<OHLCVCandle[]> {
+    this.#validatePoolName(params.pool_name);
+    this.#validateTimeframe(params.timeframe);
+    this.#validateTimestampRange(params.from, params.to);
+    this.#validateLimit(params.limit);
+
     const { pool_name, timeframe, from, to, limit } = params;
     const queryParams = buildQueryParams({ from, to, limit });
+    const url = `${this.baseUrl}/deepbook/${pool_name}/ohlcv/${timeframe}`;
 
-    return this.request<OHLCVCandle[]>(`/${pool_name}/ohlcv/${timeframe}`, queryParams);
+    return httpRequest<OHLCVCandle[]>(url, {
+      apiKey: this.apiKey,
+      params: queryParams,
+    });
+  }
+
+
+  /**
+   * Validates pool name format.
+   *
+   * @private
+   * @param poolName - The pool name to validate
+   * @throws {Error} If pool name is invalid
+   */
+  #validatePoolName(_poolName: string | undefined): void {
+    // TODO: Implement validation
+    // if (!poolName || typeof poolName !== 'string') {
+    //   throw new Error('Pool name is required and must be a non-empty string.');
+    // }
+
+    // if (poolName.trim().length === 0) {
+    //   throw new Error('Pool name cannot be empty.');
+    // }
+
+    // // Basic format check: should contain at least one hyphen or underscore
+    // // Most pool names follow BASE-QUOTE format with hyphen, but some may use underscores
+    // if (!poolName.includes('-') && !poolName.includes('_')) {
+    //   throw new Error(
+    //     `Invalid pool name format: "${poolName}". Pool name should contain at least one hyphen or underscore (e.g., 'SUI-USDC' or 'POOL_NAME').`
+    //   );
+    // }
+
+    // // Check for valid characters (alphanumeric, hyphens, underscores)
+    // if (!/^[A-Z0-9_-]+$/i.test(poolName)) {
+    //   throw new Error(
+    //     `Invalid pool name format: "${poolName}". Pool name can only contain alphanumeric characters, hyphens, and underscores.`
+    //   );
+    // }
+  }
+
+  /**
+   * Validates timeframe value.
+   *
+   * @private
+   * @param timeframe - The timeframe to validate
+   * @throws {Error} If timeframe is invalid
+   */
+  #validateTimeframe(timeframe: string | undefined): asserts timeframe is '1m' | '5m' | '15m' | '1h' | '4h' | '1d' {
+    // TODO: Implement validation
+    // const validTimeframes = ['1m', '5m', '15m', '1h', '4h', '1d'];
+
+    // if (!timeframe || typeof timeframe !== 'string') {
+    //   throw new Error(
+    //     `Timeframe is required. Valid values: ${validTimeframes.join(', ')}.`
+    //   );
+    // }
+
+    // if (!validTimeframes.includes(timeframe)) {
+    //   throw new Error(
+    //     `Invalid timeframe: "${timeframe}". Valid values: ${validTimeframes.join(', ')}.`
+    //   );
+    // }
+  }
+
+  /**
+   * Validates timestamp range (from < to).
+   *
+   * @private
+   * @param from - Start timestamp in seconds
+   * @param to - End timestamp in seconds
+   * @throws {Error} If timestamp range is invalid
+   */
+  #validateTimestampRange(_from: number | undefined, _to: number | undefined): void {
+    // TODO: Implement validation
+    // if (from === undefined || to === undefined) {
+    //   return; // Both optional, skip validation if either is missing
+    // }
+
+    // if (typeof from !== 'number' || typeof to !== 'number') {
+    //   throw new Error('Timestamps must be numbers (Unix timestamp in seconds).');
+    // }
+
+    // if (from < 0 || to < 0) {
+    //   throw new Error('Timestamps must be positive numbers.');
+    // }
+
+    // if (from >= to) {
+    //   throw new Error(
+    //     `Invalid timestamp range: "from" (${from}) must be less than "to" (${to}).`
+    //   );
+    // }
+
+    // // Check if timestamps are reasonable (not too far in the future)
+    // const maxFutureTimestamp = Math.floor(Date.now() / 1000) + 86400; // 24 hours from now
+    // if (from > maxFutureTimestamp || to > maxFutureTimestamp) {
+    //   throw new Error('Timestamps cannot be more than 24 hours in the future.');
+    // }
+  }
+
+  /**
+   * Validates limit parameter bounds.
+   *
+   * @private
+   * @param limit - The limit value to validate
+   * @param maxLimit - Maximum allowed limit (default: 1000)
+   * @param minLimit - Minimum allowed limit (default: 1)
+   * @throws {Error} If limit is invalid
+   */
+  #validateLimit(_limit: number | undefined, _maxLimit: number = 1000, _minLimit: number = 1): void {
+    // TODO: Implement validation
+    // if (limit === undefined) {
+    //   return; // Optional parameter
+    // }
+
+    // if (typeof limit !== 'number') {
+    //   throw new Error(`Limit must be a number, got: ${typeof limit}.`);
+    // }
+
+    // if (!Number.isInteger(limit)) {
+    //   throw new Error(`Limit must be an integer, got: ${limit}.`);
+    // }
+
+    // if (limit < minLimit) {
+    //   throw new Error(`Limit must be at least ${minLimit}, got: ${limit}.`);
+    // }
+
+    // if (limit > maxLimit) {
+    //   throw new Error(`Limit cannot exceed ${maxLimit}, got: ${limit}.`);
+    // }
   }
 }

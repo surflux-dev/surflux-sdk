@@ -1,8 +1,8 @@
 export { SurfluxPackageEventsClient, type SurfluxPackageEventsClientConfig } from './clients/package-events';
 export { SurfluxIndexersClient } from './clients/indexers';
 export type { SurfluxIndexersClient as SurfluxIndexersClientType } from './clients/indexers';
-export { DeepbookClient } from './clients/deepbook';
-export type { DeepbookClient as DeepbookClientType } from './clients/deepbook';
+export { SurfluxDeepbookClient } from './clients/deepbook';
+export type { SurfluxDeepbookClient as SurfluxDeepbookClientType } from './clients/deepbook';
 export { NFTClient } from './clients/nft';
 export type { NFTClient as NFTClientType } from './clients/nft';
 export { SurfluxDeepbookEventsClient, type SurfluxDeepbookEventsClientConfig } from './clients/deepbook-events';
