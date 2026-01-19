@@ -1,6 +1,6 @@
 import { SurfluxClientConfig } from '../types';
 import { SurfluxDeepbookClient } from './deepbook';
-import { NFTClient } from './nft';
+import { SurfluxNFTClient } from './nft';
 import { __validateIndexerClientConfig } from '../utils';
 
 /**
@@ -11,7 +11,7 @@ export class SurfluxIndexersClient {
   /** Client for Deepbook trading pool data */
   public readonly deepbook: SurfluxDeepbookClient;
   /** Client for NFT collection and token data */
-  public readonly nft: NFTClient;
+  public readonly nft: SurfluxNFTClient;
 
   /**
    * Creates a new SurfluxIndexersClient instance.
@@ -36,9 +36,9 @@ export class SurfluxIndexersClient {
     __validateIndexerClientConfig(config);
 
     this.deepbook = new SurfluxDeepbookClient(config);
-    this.nft = new NFTClient(config.apiKey, config.network, config.customUrl);
+    this.nft = new SurfluxNFTClient(config);
   }
 }
 
 export type { SurfluxDeepbookClient } from './deepbook';
-export type { NFTClient } from './nft';
+export type { SurfluxNFTClient } from './nft';

@@ -134,45 +134,83 @@ export interface NFTMetadata {
 }
 
 // NFT Request Interfaces
+/**
+ * Parameters for retrieving an NFT by its object ID.
+ */
 export interface GetNFTByIdParams {
+  /** The Sui object ID of the NFT */
   object_id: string;
 }
 
+/**
+ * Parameters for retrieving NFTs owned by an address.
+ */
 export interface GetNFTsForOwnerParams {
+  /** The Sui address of the owner */
   address: string;
-  collections?: string[]; // Array of collection types
+  /** Optional array of collection types to filter by */
+  collections?: string[];
+  /** Optional page number for pagination */
   page?: number;
+  /** Optional number of items per page */
   per_page?: number;
 }
 
+/**
+ * Parameters for retrieving NFTs in a collection.
+ */
 export interface GetNFTsForCollectionParams {
-  type: string; // Collection type (e.g., '0x...::module::Type')
-  fields?: Record<string, unknown>; // JSON object for filtering
+  /** The collection type (e.g., '0x123::module::NFT') */
+  type: string;
+  /** Optional JSON object for filtering by field values */
+  fields?: Record<string, unknown>;
+  /** Optional page number for pagination */
   page?: number;
+  /** Optional number of items per page */
   per_page?: number;
 }
 
+/**
+ * Parameters for retrieving collection holders.
+ */
 export interface GetCollectionHoldersParams {
-  type: string; // Collection type
+  /** The collection type (e.g., '0x123::module::NFT') */
+  type: string;
+  /** Optional page number for pagination */
   page?: number;
+  /** Optional number of items per page */
   per_page?: number;
 }
 
 // NFT Response Types
+/**
+ * Paginated response containing NFT tokens.
+ */
 export interface NftsResponseDto {
+  /** Array of NFT tokens */
   items: NFTToken[];
+  /** Whether this is the last page */
   isLastPage: boolean;
+  /** Current page number */
   currentPage: number;
+  /** Number of items per page */
   perPage: number;
 }
 
+/**
+ * Paginated response containing collection holders.
+ */
 export interface CollectionHoldersDto {
+  /** Array of holder addresses with their NFT counts */
   holders: Array<{
     address: string;
     count: number;
   }>;
+  /** Total number of holders */
   total: number;
+  /** Current page number */
   page: number;
+  /** Number of items per page */
   per_page: number;
 }
 
