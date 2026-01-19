@@ -25,6 +25,8 @@ export type CreateEventSourceFunction = (options: {
   url: string;
   headers?: Record<string, string>;
   onMessage?: (event: { data: string; event?: string; id?: string }) => void;
+  onConnect?: () => void;
+  onDisconnect?: () => void;
   fetch?: typeof fetch;
 }) => EventSourceClient;
 

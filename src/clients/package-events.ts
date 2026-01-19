@@ -184,7 +184,17 @@ export class SurfluxPackageEventsClient {
               'User-Agent': '@surflux/sdk',
             },
             onMessage: messageHandler,
-          });
+            onConnect: () => {
+              console.log('Connected to Surflux event stream');
+              this.isConnected = true;
+              resolve();
+            },
+            onDisconnect: () => {
+              if (!this.isConnected) {
+                reject(new Error('EventSource connection failed'));
+              }
+            },
+          } as Parameters<typeof createEventSource>[0]);
         } else {
           throw new Error('EventSource is not available in this environment');
         }
