@@ -1,10 +1,5 @@
 import { SurfluxClientConfig, SurfluxNetwork } from '../types';
 
-export * from './cache';
-export * from './events';
-export * from './http';
-export * from './query';
-
 /**
  * @internal
  * Validates if an API key is a non-empty string.
@@ -25,7 +20,7 @@ function isValidNetwork(network: SurfluxNetwork): network is SurfluxNetwork {
  * @internal
  * Validates the configuration for indexer clients.
  */
-export function __validateIndexerClientConfig(config: SurfluxClientConfig): void {
+function __validateIndexerClientConfig(config: SurfluxClientConfig): void {
   if (!config) {
     throw new Error('Config is required. Please provide a valid config object.');
   }
@@ -43,4 +38,13 @@ export function __validateIndexerClientConfig(config: SurfluxClientConfig): void
   }
 
   return;
-};
+}
+
+export { __validateIndexerClientConfig };
+
+export * from './cache';
+export * from './events';
+export * from './http';
+export * from './query';
+
+

@@ -43,6 +43,7 @@ npm install @surflux/sdk
 
 - Node.js 18+ and npm 9+
 - TypeScript 4.0+ (recommended)
+- Surflux API key and stream key (see [Quick Start](#quick-start) for details)
 
 ---
 
@@ -55,20 +56,6 @@ Visit [Surflux](https://surflux.dev) to get your API key.
 ### 2. Get Your Stream Key (For Event Streaming)
 
 For real-time event streaming (Deepbook Events and Package Events), you'll also need a stream key. Visit [Surflux](https://surflux.dev) to get your stream key.
-
-### 3. Generate Event Types (Optional)
-
-Generate TypeScript types from your Sui package events:
-
-```bash
-npx @surflux/sdk <packageId> <network> -o ./sui-events
-```
-
-**Supported Networks:**
-- `mainnet`
-- `testnet`
-- `devnet`
-- Custom RPC URL
 
 ---
 
@@ -132,6 +119,35 @@ client.createTypedHandlers({
   },
   Mint: (event: MintEvent) => {
     console.log('Mint:', event);
+  }
+});
+```
+
+#### Generate Event Types (Optional)
+
+For type-safe event handling with `createTypedHandlers`, you can generate TypeScript types from your Sui package events:
+
+```bash
+npx @surflux/sdk <packageId> <network> -o ./sui-events
+```
+
+**Supported Networks:**
+- `mainnet`
+- `testnet`
+- `devnet`
+- Custom RPC URL
+
+The generated types can then be imported and used with typed handlers:
+
+```typescript
+import { TransferEvent, MintEvent } from './sui-events';
+
+client.createTypedHandlers({
+  Transfer: (event: TransferEvent) => {
+    // event is now fully typed
+  },
+  Mint: (event: MintEvent) => {
+    // event is now fully typed
   }
 });
 ```
