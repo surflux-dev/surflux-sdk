@@ -21,26 +21,33 @@ npm install @surflux/sdk
 
 Visit [Surflux](https://surflux.dev) to get your API key.
 
-### 2. Generate Event Types (Optional)
+### 2. Get Your Stream Key (For Event Streaming)
+
+For real-time event streaming (Deepbook Events and Package Events), you'll also need a stream key. Visit [Surflux](https://surflux.dev) to get your stream key.
+
+### 3. Generate Event Types (Optional)
 
 ```bash
 npx @surflux/sdk <packageId> <network> -o ./sui-events
 ```
 
-## Event Streaming
+## Package Event Streaming
+
+The `SurfluxPackageEventsClient` provides real-time access to Sui package events via Server-Sent Events (SSE).
 
 ### Basic Usage
 
 ```typescript
-import { SurfluxPackageEventsClient } from '@surflux/sdk';
+import { SurfluxPackageEventsClient, SurfluxNetwork } from '@surflux/sdk';
 
 const client = new SurfluxPackageEventsClient({
   streamKey: 'your-stream-key',
-  network: 'testnet'
+  network: SurfluxNetwork.TESTNET
 });
 
 await client.connect();
 
+// Subscribe to a specific event type
 client.onEvent('MyEvent', (event) => {
   console.log('Event received:', event);
 });
@@ -67,7 +74,28 @@ const event = await client.waitFor('MyEvent', 5000);
 client.on('0x123::module::*', (event) => {
   console.log(event);
 });
+
+// Match events by name only (last part after ::)
+client.on('MyEvent', (event) => {
+  console.log(event);
+});
 ```
+
+### Typed Handlers
+
+```typescript
+// Use createTypedHandlers for type-safe event handling
+client.createTypedHandlers({
+  Transfer: (event: TransferEvent) => {
+    console.log('Transfer:', event);
+  },
+  Mint: (event: MintEvent) => {
+    console.log('Mint:', event);
+  }
+});
+```
+
+For more detailed examples, see the [examples directory](./examples/).
 
 ## NFT API
 
@@ -182,26 +210,24 @@ For more detailed examples, see the [examples directory](./examples/).
 
 ## Deepbook Event Streaming
 
+The `SurfluxDeepbookEventsClient` provides real-time access to Deepbook trading events via Server-Sent Events (SSE).
+
 ### All Updates Stream
 
 Create a client for receiving all Deepbook events (live trades, order book depth, order placements, cancellations, modifications, and expirations):
 
 ```typescript
-import { SurfluxDeepbookEventsClient, DeepbookStreamType, DeepbookEventType } from '@surflux/sdk';
+import { SurfluxDeepbookEventsClient, DeepbookStreamType, SurfluxNetwork } from '@surflux/sdk';
 
 // Create client with ALL_UPDATES stream type
 const client = new SurfluxDeepbookEventsClient({
   streamKey: 'your-stream-key',
   poolName: 'SUI-USDC',
   streamType: DeepbookStreamType.ALL_UPDATES,
-  network: 'testnet'
+  network: SurfluxNetwork.TESTNET
 });
 
-// Connect to the stream (with optional filters)
-await client.connect({
-  lastId: '1755091934020-0',
-  type: DeepbookEventType.LIVE_TRADES
-});
+await client.connect();
 
 // Subscribe to specific event types (all 6 event types available)
 client.on('deepbook_live_trades', (trade) => {
@@ -219,6 +245,14 @@ client.on('deepbook_all_updates_placed', (order) => {
 client.on('deepbook_all_updates_canceled', (order) => {
   console.log('Order canceled:', order);
 });
+
+client.on('deepbook_all_updates_modified', (order) => {
+  console.log('Order modified:', order);
+});
+
+client.on('deepbook_all_updates_expired', (order) => {
+  console.log('Order expired:', order);
+});
 ```
 
 ### Live Trades Stream
@@ -226,17 +260,16 @@ client.on('deepbook_all_updates_canceled', (order) => {
 Create a client for receiving only live trades and order book depth updates:
 
 ```typescript
-import { SurfluxDeepbookEventsClient, DeepbookStreamType } from '@surflux/sdk';
+import { SurfluxDeepbookEventsClient, DeepbookStreamType, SurfluxNetwork } from '@surflux/sdk';
 
 // Create client with LIVE_TRADES stream type
 const client = new SurfluxDeepbookEventsClient({
   streamKey: 'your-stream-key',
   poolName: 'SUI-USDC',
   streamType: DeepbookStreamType.LIVE_TRADES,
-  network: 'testnet'
+  network: SurfluxNetwork.TESTNET
 });
 
-// Connect to the stream
 await client.connect();
 
 // Subscribe to event types (only live_trades and order_book_depth available)
@@ -247,10 +280,20 @@ client.on('deepbook_live_trades', (trade) => {
 client.on('deepbook_order_book_depth', (depth) => {
   console.log('Depth update:', depth);
 });
+```
 
-// Connect from a specific point
+### Connect with Filters
+
+```typescript
+// Connect from a specific event ID
 await client.connect({
   lastId: '1755091934020-0'
+});
+
+// For ALL_UPDATES stream, filter by event type
+await client.connect({
+  lastId: '1755091934020-0',
+  type: 'deepbook_live_trades'
 });
 ```
 
@@ -273,8 +316,10 @@ console.log('Trade received:', trade);
 ### Disconnect
 
 ```typescript
-client.disconnect();
+await client.disconnect();
 ```
+
+For more detailed examples, see the [examples directory](./examples/).
 
 ## Framework Examples
 
