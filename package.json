@@ -20,7 +20,7 @@
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run build && npm run lint && npm test",
     "dev": "tsc --watch",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
@@ -28,7 +28,10 @@
     "test:unit": "jest --testPathPattern=test/unit",
     "test:e2e": "jest --testPathPattern=test/e2e",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "version:patch": "node scripts/bump-version.js patch",
+    "version:minor": "node scripts/bump-version.js minor",
+    "version:major": "node scripts/bump-version.js major"
   },
   "keywords": [
     "surflux",
@@ -84,6 +87,12 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
-  ]
+    "LICENSE",
+    "CHANGELOG.md",
+    "SECURITY.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
 }

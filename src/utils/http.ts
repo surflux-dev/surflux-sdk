@@ -1,4 +1,12 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import {
+  SurfluxAPIError,
+  SurfluxAuthenticationError,
+  SurfluxNetworkError,
+  SurfluxNotFoundError,
+  SurfluxRateLimitError,
+  SurfluxTimeoutError,
+} from '../errors';
 
 export async function httpRequest<T = unknown>(
   url: string,
@@ -90,29 +98,27 @@ export async function httpRequest<T = unknown>(
         }
       }
 
-      // Add URL context for better debugging
-      if (status === 404) {
-        errorMessage += ` (Resource not found: ${url})`;
-      } else if (status === 400) {
-        errorMessage += ` (Bad request: ${url})`;
-      } else if (status === 401 || status === 403) {
-        errorMessage += ' (Invalid or missing API key)';
+      // Throw specific error types based on status code
+      if (status === 401 || status === 403) {
+        throw new SurfluxAuthenticationError(errorMessage, url);
+      } else if (status === 404) {
+        throw new SurfluxNotFoundError(errorMessage, url);
       } else if (status === 429) {
-        errorMessage += ' (Rate limit exceeded)';
+        throw new SurfluxRateLimitError(errorMessage, url);
       } else if (status && status >= 500) {
-        errorMessage += ' (Server error)';
+        throw new SurfluxAPIError(errorMessage, status, statusText, url);
+      } else {
+        throw new SurfluxAPIError(errorMessage, status, statusText, url);
       }
-
-      throw new Error(errorMessage);
     }
 
     // Handle network errors
     if (error instanceof Error) {
       if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
-        throw new Error(`Network error: Unable to connect to API. ${error.message}`);
+        throw new SurfluxNetworkError(`Network error: Unable to connect to API. ${error.message}`, error);
       }
       if (error.message.includes('timeout')) {
-        throw new Error(`Request timeout: The API request took too long to complete. ${error.message}`);
+        throw new SurfluxTimeoutError(`Request timeout: The API request took too long to complete. ${error.message}`, error);
       }
     }
 

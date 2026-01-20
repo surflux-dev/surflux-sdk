@@ -9,3 +9,4 @@ export { SurfluxDeepbookEventsClient, type SurfluxDeepbookEventsClientConfig } f
 export type { SurfluxDeepbookEventsClient as SurfluxDeepbookEventsClientType } from './clients/deepbook-events';
 export * from './types';
 export * from './cli/generator';
+export * from './errors';
