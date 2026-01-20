@@ -17,6 +17,27 @@
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+  - [Package Event Streaming](#package-event-streaming)
+  - [NFT API](#nft-api)
+  - [Deepbook API](#deepbook-api)
+  - [Deepbook Event Streaming](#deepbook-event-streaming)
+- [Framework Integration](#framework-integration)
+- [API Reference](#api-reference)
+- [Error Handling](#error-handling)
+- [Examples](#examples)
+- [Contributing](#contributing)
+- [Security](#security)
+- [License](#license)
+- [Links](#links)
+
+---
+
 ## Overview
 
 The Surflux SDK is a production-ready TypeScript SDK for interacting with the Surflux platform on Sui blockchain. It provides real-time event streaming, comprehensive NFT APIs, and Deepbook trading data access with full type safety and IntelliSense support.
@@ -621,12 +642,11 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 - [Surflux Documentation](https://surflux.dev/docs)
 - [Sui Documentation](https://docs.sui.io)
 - [Report an Issue](https://github.com/surflux-dev/surflux-sdk/issues)
-- [Discussions](https://github.com/surflux-dev/surflux-sdk/discussions)
 
 ---
 
 <div align="center">
 
-Made by [Surflux](https://surflux.dev)
+Made with 💚 by [Surflux](https://surflux.dev)
 
 </div>
