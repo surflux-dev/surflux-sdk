@@ -485,6 +485,196 @@ function useSuiEvents(streamKey: string, packageId: string) {
 
 ## API Reference
 
+
+### SurfluxIndexerClient
+
+Main client for accessing Surflux indexer services. Provides access to both NFT and Deepbook APIs.
+
+#### Constructor
+
+```typescript
+new SurfluxIndexerClient(config: {
+  apiKey: string;
+  network: SurfluxNetwork;
+  customUrl?: string;
+})
+```
+
+#### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `nft` | `SurfluxNFTClient` | Client for NFT collection and token data |
+| `deepbook` | `SurfluxDeepbookClient` | Client for Deepbook trading pool data |
+
+#### NFT Methods
+
+Access via `surfluxClient.nft.*`:
+
+```typescript
+getNFTById(params: { object_id: string }): Promise<NFTToken>
+
+getNFTsByOwner(params: {
+  address: string;
+  collections?: string[];
+  page?: number; // Starts from 0
+  per_page?: number;
+}): Promise<PaginatedNFTs>
+
+getNFTsByCollection(params: {
+  type: string;
+  fields?: Record<string, unknown>;
+  page?: number; // Starts from 0
+  per_page?: number;
+}): Promise<PaginatedNFTs>
+
+getCollectionHolders(params: {
+  type: string;
+  page?: number; // Starts from 0
+  per_page?: number;
+}): Promise<PaginatedCollectionHolders>
+
+getKioskNFTs(params: {
+  kiosk_id: string;
+  page?: number; // Starts from 0
+  per_page?: number;
+}): Promise<PaginatedKioskNFTs>
+```
+
+**Response Types:**
+
+```typescript
+// PaginatedNFTs - Returned by getNFTsByOwner and getNFTsByCollection
+interface PaginatedNFTs {
+  items: NFTToken[];
+  isLastPage: boolean;
+  currentPage: number;
+  perPage: number;
+}
+
+// PaginatedCollectionHolders - Returned by getCollectionHolders
+interface PaginatedCollectionHolders {
+  holders: Array<{
+    owner: string;
+    count: number;
+  }>;
+  isLastPage: boolean;
+  currentPage: number;
+  perPage: number;
+}
+
+// PaginatedKioskNFTs - Returned by getKioskNFTs
+interface PaginatedKioskNFTs {
+  kiosk: NFTKiosk;
+  items: NFTToken[];
+  isLastPage: boolean;
+  currentPage: number;
+  perPage: number;
+}
+```
+
+#### Deepbook Methods
+
+Access via `surfluxClient.deepbook.*`:
+
+```typescript
+getPools(): Promise<DeepbookPool[]>
+
+getTrades(params: {
+  pool_name: string;
+  from?: number; // Unix timestamp in seconds (defaults to 1 day ago)
+  to?: number; // Unix timestamp in seconds (defaults to current time)
+  limit?: number; // Defaults to 100
+}): Promise<DeepbookTrade[]>
+
+getOrderBookDepth(params: {
+  pool_name: string;
+  limit?: number; // Max 20 price levels per side
+}): Promise<DeepbookOrderBookDepth>
+
+getOHLCV(params: {
+  pool_name: string;
+  timeframe: '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
+  from?: number; // Unix timestamp in seconds (defaults to 1 day ago)
+  to?: number; // Unix timestamp in seconds (defaults to current time)
+  limit?: number;
+}): Promise<DeepbookOHLCVCandle[]>
+```
+
+**Response Types:**
+
+```typescript
+// DeepbookPool - Returned by getPools
+interface DeepbookPool {
+  pool_id: string;
+  pool_name: string;
+  base_asset_id: string;
+  base_asset_decimals: number;
+  base_asset_symbol: string;
+  base_asset_name: string;
+  quote_asset_id: string;
+  quote_asset_decimals: number;
+  quote_asset_symbol: string;
+  quote_asset_name: string;
+  min_size: number;
+  lot_size: number;
+  tick_size: number;
+}
+
+// DeepbookOrderBookDepth - Returned by getOrderBookDepth
+interface DeepbookOrderBookDepth {
+  pool_id: string;
+  bids: DeepbookOrderBookDepthLevel[];
+  asks: DeepbookOrderBookDepthLevel[];
+}
+
+interface DeepbookOrderBookDepthLevel {
+  price: string;
+  total_quantity: string;
+  order_count: string;
+}
+
+// DeepbookTrade - Returned by getTrades
+interface DeepbookTrade {
+  event_digest: string;
+  digest: string;
+  sender: string;
+  checkpoint: number;
+  checkpoint_timestamp_ms: number;
+  package: string;
+  pool_id: string;
+  maker_order_id: string;
+  taker_order_id: string;
+  maker_client_order_id: string;
+  taker_client_order_id: string;
+  price: number;
+  taker_fee: number;
+  taker_fee_is_deep: boolean;
+  maker_fee: number;
+  maker_fee_is_deep: boolean;
+  taker_is_bid: boolean;
+  base_quantity: number;
+  quote_quantity: number;
+  maker_balance_manager_id: string;
+  taker_balance_manager_id: string;
+  onchain_timestamp: number;
+}
+
+// DeepbookOHLCVCandle - Returned by getOHLCV
+interface DeepbookOHLCVCandle {
+  timestamp: string;
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  volume_base: string;
+  volume_quote: string;
+  trade_count: number;
+}
+```
+
+---
+
 ### SurfluxPackageEventsClient
 
 #### Constructor
@@ -514,79 +704,6 @@ new SurfluxPackageEventsClient(config: {
 | Property | Type | Description |
 |----------|------|-------------|
 | `connected` | `boolean` | Connection status |
-
----
-
-### SurfluxIndexerClient
-
-Main client for accessing Surflux indexer services. Provides access to both NFT and Deepbook APIs.
-
-#### Constructor
-
-```typescript
-new SurfluxIndexerClient(config: {
-  apiKey: string;
-  network: SurfluxNetwork;
-  customUrl?: string;
-})
-```
-
-#### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `nft` | `SurfluxNFTClient` | Client for NFT collection and token data |
-| `deepbook` | `SurfluxDeepbookClient` | Client for Deepbook trading pool data |
-
-#### NFT Methods
-
-Access via `indexer.nft.*`:
-
-```typescript
-getNFTById(params: { object_id: string }): Promise<NFTToken>
-getNFTsByOwner(params: {
-  address: string;
-  collections?: string[];
-  page?: number;
-  per_page?: number;
-}): Promise<PaginatedNFTs>
-getNFTsByCollection(params: {
-  type: string;
-  fields?: object;
-  page?: number;
-  per_page?: number;
-}): Promise<PaginatedNFTs>
-getCollectionHolders(params: {
-  type: string;
-  page?: number;
-  per_page?: number;
-}): Promise<PaginatedCollectionHolders>
-```
-
-#### Deepbook Methods
-
-Access via `indexer.deepbook.*`:
-
-```typescript
-getPools(): Promise<PoolInfo[]>
-getTrades(params: {
-  pool_name: string;
-  from?: number;
-  to?: number;
-  limit?: number;
-}): Promise<Trade[]>
-getOrderBookDepth(params: {
-  pool_name: string;
-  limit?: number;
-}): Promise<OrderBookDepth>
-getOHLCV(params: {
-  pool_name: string;
-  timeframe: '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
-  from?: number;
-  to?: number;
-  limit?: number;
-}): Promise<OHLCVCandle[]>
-```
 
 ---
 
@@ -674,14 +791,13 @@ try {
 
 Comprehensive examples are available in the [examples directory](./examples/):
 
+- [Deepbook Basic](./examples/deepbook-basic.ts)
 - [Package Events Basic](./examples/package-events-basic.ts)
 - [Package Events Typed](./examples/package-events-typed.ts)
 - [Deepbook Events Basic](./examples/deepbook-events-basic.ts)
 - [Deepbook Events Live Trades](./examples/deepbook-events-live-trades.ts)
 - [NFT Basic](./examples/nft-basic.ts)
 - [NFT Collection Explorer](./examples/nft-collection-explorer.ts)
-- [Deepbook Basic](./examples/deepbook-basic.ts)
-- [Deepbook OHLCV Chart](./examples/deepbook-ohlcv-chart.ts)
 
 ---
 
