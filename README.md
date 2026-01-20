@@ -23,10 +23,11 @@
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Usage](#usage)
-  - [Package Event Streaming](#package-event-streaming)
   - [NFT API](#nft-api)
   - [Deepbook API](#deepbook-api)
+  - [Package Event Streaming](#package-event-streaming)
   - [Deepbook Event Streaming](#deepbook-event-streaming)
+  - [SurfluxIndexerClient](#surfluxindexerclient)
 - [Framework Integration](#framework-integration)
 - [API Reference](#api-reference)
 - [Error Handling](#error-handling)
@@ -81,6 +82,158 @@ For real-time event streaming (Deepbook Events and Package Events), you'll also 
 ---
 
 ## Usage
+
+
+### NFT API
+
+Query NFT collections, tokens, and holders with full type safety.
+
+#### Initialize Client
+
+```typescript
+import { SurfluxIndexerClient, SurfluxNetwork } from '@surflux/sdk';
+
+const surfluxClient = new SurfluxIndexerClient({
+  apiKey: 'your-api-key',
+  network: SurfluxNetwork.MAINNET
+});
+```
+
+#### Get NFT by ID
+
+Retrieve a single NFT by its object ID with complete metadata, display properties, and Kiosk information.
+
+```typescript
+const nft = await surfluxClient.nft.getNFTById({
+  object_id: '0x0000000000000000000000000000000000000000000000000000000000000000' // 32-byte hex string (64 chars)
+});
+```
+
+#### Get NFTs by Address
+
+Retrieve all NFTs owned by a specific wallet address.
+
+```typescript
+const {
+  items, // NFTToken[]
+  isLastPage, // boolean
+  currentPage, // number
+  perPage // number
+} = await surfluxClient.nft.getNFTsByOwner({
+  address: '0x0000000000000000000000000000000000000000000000000000000000000000', // 32-byte hex string (64 chars)
+  page: 1,
+  per_page: 20
+});
+```
+
+#### Get NFTs by Collection
+
+Retrieve all NFTs from a specific collection.
+
+```typescript
+const {
+  items, // NFTToken[]
+  isLastPage, // boolean
+  currentPage, // number
+  perPage // number
+} = await surfluxClient.nft.getNFTsByCollection({
+  type: '0x123::module::NFT', // Collection type (e.g., '0x123::module::NFT')
+  page: 1,
+  per_page: 10
+});
+```
+
+#### Get Collection Holders
+
+Get a list of holders for a specific collection.
+
+```typescript
+const {
+  holders, // { owner: string; count: number }[]
+  isLastPage, // boolean
+  currentPage, // number
+  perPage, // number
+} = await surfluxClient.nft.getCollectionHolders({
+  type: '0x123::module::NFT', // Collection type (e.g., '0x123::module::NFT')
+  page: 1,
+  per_page: 50
+});
+```
+
+#### Get Kiosk NFTs
+
+Retrieve all NFTs inside a specific kiosk.
+
+```typescript
+const {
+    kiosk, // NFTKiosk
+    items, // NFTToken[]
+    isLastPage, // boolean
+    currentPage, // number
+    perPage, // number
+  } = await surfluxClient.nft.getKioskNFTs({
+  kiosk_id: '0x0000000000000000000000000000000000000000000000000000000000000000', // 32-byte hex string (64 chars)
+    page: 0,
+    per_page: 20
+  });
+```
+
+---
+
+### Deepbook API
+
+Access trading pools, order books, trades, and OHLCV data.
+
+#### Initialize Client
+
+```typescript
+import { SurfluxIndexerClient, SurfluxNetwork } from '@surflux/sdk';
+
+const indexer = new SurfluxIndexerClient({
+  apiKey: 'your-api-key',
+  network: SurfluxNetwork.TESTNET
+});
+```
+
+#### Get All Pools
+
+```typescript
+const pools = await indexer.deepbook.getPools();
+```
+
+#### Get Trades
+
+```typescript
+const trades = await indexer.deepbook.getTrades({
+  pool_name: 'SUI-USDC',
+  from: 1699999999,  // Unix timestamp in seconds
+  to: 1700000000,
+  limit: 100
+});
+```
+
+#### Get Order Book
+
+```typescript
+const orderBook = await indexer.deepbook.getOrderBook({
+  pool_name: 'SUI-USDC',
+  limit: 20
+});
+```
+
+#### Get OHLCV Candles
+
+```typescript
+const candles = await indexer.deepbook.getOHLCV({
+  pool_name: 'SUI-USDC',
+  timeframe: '1h',  // '1m' | '5m' | '15m' | '1h' | '4h' | '1d'
+  from: 1699999999,
+  to: 1700000000,
+  limit: 100
+});
+```
+
+---
 
 ### Package Event Streaming
 
@@ -174,121 +327,6 @@ client.createTypedHandlers({
 ```
 
 For more detailed examples, see the [examples directory](./examples/).
-
----
-
-### NFT API
-
-Query NFT collections, tokens, and holders with full type safety.
-
-#### Initialize Client
-
-```typescript
-import { SurfluxNFTClient, SurfluxNetwork } from '@surflux/sdk';
-
-const client = new SurfluxNFTClient({
-  apiKey: 'your-api-key',
-  network: SurfluxNetwork.TESTNET
-});
-```
-
-#### Get NFT by ID
-
-```typescript
-const nft = await client.getNFTById({
-  object_id: '0x123...'
-});
-```
-
-#### Get NFTs for Owner
-
-```typescript
-const result = await client.getNFTsForOwner({
-  address: '0x123...',
-  page: 1,
-  per_page: 20
-});
-
-console.log(result.items);      // NFTToken[]
-console.log(result.isLastPage); // boolean
-console.log(result.currentPage); // number
-console.log(result.perPage);     // number
-```
-
-#### Get NFTs for Collection
-
-```typescript
-const result = await client.getNFTsForCollection({
-  type: '0x123::duck_nft::DuckNFT',
-  page: 1,
-  per_page: 10
-});
-```
-
-#### Get Collection Holders
-
-```typescript
-const holders = await client.getCollectionHolders({
-  type: '0x123::duck_nft::DuckNFT',
-  page: 1,
-  per_page: 50
-});
-```
-
----
-
-### Deepbook API
-
-Access trading pools, order books, trades, and OHLCV data.
-
-#### Initialize Client
-
-```typescript
-import { SurfluxDeepbookClient, SurfluxNetwork } from '@surflux/sdk';
-
-const client = new SurfluxDeepbookClient({
-  apiKey: 'your-api-key',
-  network: SurfluxNetwork.TESTNET
-});
-```
-
-#### Get All Pools
-
-```typescript
-const pools = await client.getPools();
-```
-
-#### Get Trades
-
-```typescript
-const trades = await client.getTrades({
-  pool_name: 'SUI-USDC',
-  from: 1699999999,  // Unix timestamp in seconds
-  to: 1700000000,
-  limit: 100
-});
-```
-
-#### Get Order Book
-
-```typescript
-const orderBook = await client.getOrderBook({
-  pool_name: 'SUI-USDC',
-  limit: 20
-});
-```
-
-#### Get OHLCV Candles
-
-```typescript
-const candles = await client.getOHLCV({
-  pool_name: 'SUI-USDC',
-  timeframe: '1h',  // '1m' | '5m' | '15m' | '1h' | '4h' | '1d'
-  from: 1699999999,
-  to: 1700000000,
-  limit: 100
-});
-```
 
 ---
 
@@ -471,36 +509,55 @@ new SurfluxPackageEventsClient(config: {
 
 ---
 
-### SurfluxNFTClient
+### SurfluxIndexerClient
 
-#### Methods
+Main client for accessing Surflux indexer services. Provides access to both NFT and Deepbook APIs.
+
+#### Constructor
+
+```typescript
+new SurfluxIndexerClient(config: {
+  apiKey: string;
+  network: SurfluxNetwork;
+  customUrl?: string;
+})
+```
+
+#### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `nft` | `SurfluxNFTClient` | Client for NFT collection and token data |
+| `deepbook` | `SurfluxDeepbookClient` | Client for Deepbook trading pool data |
+
+#### NFT Methods
+
+Access via `indexer.nft.*`:
 
 ```typescript
 getNFTById(params: { object_id: string }): Promise<NFTToken>
-getNFTsForOwner(params: {
+getNFTsByOwner(params: {
   address: string;
   collections?: string[];
   page?: number;
   per_page?: number;
-}): Promise<NftsResponseDto>
-getNFTsForCollection(params: {
+}): Promise<PaginatedNFTs>
+getNFTsByCollection(params: {
   type: string;
   fields?: object;
   page?: number;
   per_page?: number;
-}): Promise<NftsResponseDto>
+}): Promise<PaginatedNFTs>
 getCollectionHolders(params: {
   type: string;
   page?: number;
   per_page?: number;
-}): Promise<CollectionHoldersDto>
+}): Promise<PaginatedCollectionHolders>
 ```
 
----
+#### Deepbook Methods
 
-### SurfluxDeepbookClient
-
-#### Methods
+Access via `indexer.deepbook.*`:
 
 ```typescript
 getPools(): Promise<PoolInfo[]>
@@ -573,6 +630,8 @@ The SDK provides custom error classes for better error handling:
 
 ```typescript
 import {
+  SurfluxIndexerClient,
+  SurfluxNetwork,
   SurfluxError,
   SurfluxAPIError,
   SurfluxAuthenticationError,
@@ -583,8 +642,13 @@ import {
   SurfluxStreamError
 } from '@surflux/sdk';
 
+const surfluxClient = new SurfluxIndexerClient({
+  apiKey: 'your-api-key',
+  network: SurfluxNetwork.TESTNET
+});
+
 try {
-  await client.getNFTById({ object_id: '0x123...' });
+  await surfluxClient.nft.getNFTById({ object_id: '0x0000000000000000000000000000000000000000000000000000000000000000' });
 } catch (error) {
   if (error instanceof SurfluxAuthenticationError) {
     console.error('Invalid API key');

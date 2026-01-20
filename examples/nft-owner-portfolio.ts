@@ -27,7 +27,7 @@ async function main() {
     let hasMore = true;
 
     while (hasMore) {
-      const response = await client.getNFTsForOwner({
+      const response = await client.getNFTsByOwner({
         address: ownerAddress,
         page: currentPage,
         per_page: 50,
@@ -96,7 +96,7 @@ async function main() {
     const targetCollections = Object.keys(collectionGroups).slice(0, 2); // Get first 2 collections
     
     if (targetCollections.length > 0) {
-      const filteredResponse = await client.getNFTsForOwner({
+      const filteredResponse = await client.getNFTsByOwner({
         address: ownerAddress,
         collections: targetCollections,
         page: 1,

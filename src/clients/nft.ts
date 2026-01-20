@@ -1,12 +1,14 @@
 import {
   NFTToken,
-  NftsResponseDto,
-  CollectionHoldersDto,
+  PaginatedNFTs,
+  PaginatedCollectionHolders,
   GetNFTByIdParams,
-  GetNFTsForOwnerParams,
-  GetNFTsForCollectionParams,
+  GetNFTsByOwnerParams,
+  GetNFTsByCollectionParams,
   GetCollectionHoldersParams,
   SurfluxClientConfig,
+  PaginatedKioskNFTs,
+  GetKioskNFTsParams,
 } from '../types';
 import { __validateIndexerClientConfig, buildQueryParams, httpRequest } from '../utils';
 import { getApiBaseUrl } from '../constants';
@@ -68,20 +70,20 @@ export class SurfluxNFTClient {
    * @param params - Parameters for the request
    * @param params.address - The Sui address of the owner
    * @param params.collections - Optional array of collection types to filter by
-   * @param params.page - Optional page number for pagination
+   * @param params.page - Optional page number for pagination (starts from 0)
    * @param params.per_page - Optional number of items per page
    * @returns A promise that resolves to a paginated response with NFT tokens
    *
    * @example
    * ```typescript
-   * const nfts = await client.getNFTsForOwner({
+   * const nfts = await client.getNFTsByOwner({
    *   address: '0x123...',
    *   page: 1,
    *   per_page: 20
    * });
    * ```
    */
-  async getNFTsForOwner(params: GetNFTsForOwnerParams): Promise<NftsResponseDto> {
+  async getNFTsByOwner(params: GetNFTsByOwnerParams): Promise<PaginatedNFTs> {
     this.#validateAddress(params.address);
     this.#validatePage(params.page);
     this.#validatePerPage(params.per_page);
@@ -95,7 +97,7 @@ export class SurfluxNFTClient {
 
     const url = `${this.baseUrl}/nfts/address/${address}`;
 
-    return httpRequest<NftsResponseDto>(url, {
+    return httpRequest<PaginatedNFTs>(url, {
       apiKey: this.apiKey,
       params: queryParams,
     });
@@ -107,20 +109,20 @@ export class SurfluxNFTClient {
    * @param params - Parameters for the request
    * @param params.type - The collection type (e.g., '0x123::module::NFT')
    * @param params.fields - Optional JSON object for filtering by field values
-   * @param params.page - Optional page number for pagination
+   * @param params.page - Optional page number for pagination (starts from 0)
    * @param params.per_page - Optional number of items per page
    * @returns A promise that resolves to a paginated response with NFT tokens
    *
    * @example
    * ```typescript
-   * const nfts = await client.getNFTsForCollection({
+   * const nfts = await client.getNFTsByCollection({
    *   type: '0x123::duck_nft::DuckNFT',
    *   page: 1,
    *   per_page: 20
    * });
    * ```
    */
-  async getNFTsForCollection(params: GetNFTsForCollectionParams): Promise<NftsResponseDto> {
+  async getNFTsByCollection(params: GetNFTsByCollectionParams): Promise<PaginatedNFTs> {
     this.#validateType(params.type);
     this.#validatePage(params.page);
     this.#validatePerPage(params.per_page);
@@ -136,7 +138,7 @@ export class SurfluxNFTClient {
 
     const url = `${this.baseUrl}/nfts/collection/${encodedType}`;
 
-    return httpRequest<NftsResponseDto>(url, {
+    return httpRequest<PaginatedNFTs>(url, {
       apiKey: this.apiKey,
       params: queryParams,
     });
@@ -147,7 +149,7 @@ export class SurfluxNFTClient {
    *
    * @param params - Parameters for the request
    * @param params.type - The collection type (e.g., '0x123::module::NFT')
-   * @param params.page - Optional page number for pagination
+   * @param params.page - Optional page number for pagination (starts from 0)
    * @param params.per_page - Optional number of items per page
    * @returns A promise that resolves to a paginated response with collection holders
    *
@@ -160,7 +162,7 @@ export class SurfluxNFTClient {
    * });
    * ```
    */
-  async getCollectionHolders(params: GetCollectionHoldersParams): Promise<CollectionHoldersDto> {
+  async getCollectionHolders(params: GetCollectionHoldersParams): Promise<PaginatedCollectionHolders> {
     this.#validateType(params.type);
     this.#validatePage(params.page);
     this.#validatePerPage(params.per_page);
@@ -175,7 +177,49 @@ export class SurfluxNFTClient {
 
     const url = `${this.baseUrl}/nfts/collection/${encodedType}/holders`;
 
-    return httpRequest<CollectionHoldersDto>(url, {
+    const response = await httpRequest<any>(url, {
+      apiKey: this.apiKey,
+      params: queryParams,
+    });
+    const holders = response.items as { address: string; count: number }[];
+    delete response.items;
+    return { ...response, holders } as PaginatedCollectionHolders;
+  }
+
+  /**
+   * Retrieve all NFTs inside a specific kiosk.
+   *
+   * @param params - Parameters for the request
+   * @param params.kiosk_id - The Sui object ID of the kiosk
+   * @param params.page - Optional page number for pagination (starts from 0)
+   * @param params.per_page - Optional number of items per page
+   * @returns A promise that resolves to a paginated response with NFT tokens
+   *
+   * @example
+   * ```typescript
+   * const nfts = await client.getKioskNFTs({
+   *   kiosk_id: '0x123...',
+   *   page: 1,
+   *   per_page: 20
+   * });
+   * ```
+   */
+  async getKioskNFTs(params: GetKioskNFTsParams): Promise<PaginatedKioskNFTs> {
+    // this.#validateKioskId(params.kiosk_id);
+    this.#validatePage(params.page);
+    this.#validatePerPage(params.per_page);
+
+    const { kiosk_id, page, per_page } = params;
+    const queryParams = buildQueryParams({
+      page,
+      perPage: per_page,
+    });
+
+    const encodedKioskId = encodeURIComponent(kiosk_id);
+
+    const url = `${this.baseUrl}/kiosks/${encodedKioskId}/nfts`;
+
+    return httpRequest<PaginatedKioskNFTs>(url, {
       apiKey: this.apiKey,
       params: queryParams,
     });

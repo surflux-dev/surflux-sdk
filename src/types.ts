@@ -145,12 +145,12 @@ export interface GetNFTByIdParams {
 /**
  * Parameters for retrieving NFTs owned by an address.
  */
-export interface GetNFTsForOwnerParams {
+export interface GetNFTsByOwnerParams {
   /** The Sui address of the owner */
   address: string;
   /** Optional array of collection types to filter by */
   collections?: string[];
-  /** Optional page number for pagination */
+  /** Optional page number for pagination (starts from 0) */
   page?: number;
   /** Optional number of items per page */
   per_page?: number;
@@ -159,12 +159,12 @@ export interface GetNFTsForOwnerParams {
 /**
  * Parameters for retrieving NFTs in a collection.
  */
-export interface GetNFTsForCollectionParams {
+export interface GetNFTsByCollectionParams {
   /** The collection type (e.g., '0x123::module::NFT') */
   type: string;
   /** Optional JSON object for filtering by field values */
   fields?: Record<string, unknown>;
-  /** Optional page number for pagination */
+  /** Optional page number for pagination (starts from 0) */
   page?: number;
   /** Optional number of items per page */
   per_page?: number;
@@ -176,7 +176,19 @@ export interface GetNFTsForCollectionParams {
 export interface GetCollectionHoldersParams {
   /** The collection type (e.g., '0x123::module::NFT') */
   type: string;
-  /** Optional page number for pagination */
+  /** Optional page number for pagination (starts from 0) */
+  page?: number;
+  /** Optional number of items per page */
+  per_page?: number;
+}
+
+/**
+ * Parameters for retrieving NFTs inside a kiosk.
+ */
+export interface GetKioskNFTsParams {
+  /** The Sui object ID of the kiosk */
+  kiosk_id: string;
+  /** Optional page number for pagination (starts from 0) */
   page?: number;
   /** Optional number of items per page */
   per_page?: number;
@@ -186,7 +198,7 @@ export interface GetCollectionHoldersParams {
 /**
  * Paginated response containing NFT tokens.
  */
-export interface NftsResponseDto {
+export interface PaginatedNFTs {
   /** Array of NFT tokens */
   items: NFTToken[];
   /** Whether this is the last page */
@@ -200,18 +212,34 @@ export interface NftsResponseDto {
 /**
  * Paginated response containing collection holders.
  */
-export interface CollectionHoldersDto {
+export interface PaginatedCollectionHolders {
   /** Array of holder addresses with their NFT counts */
   holders: Array<{
-    address: string;
+    owner: string;
     count: number;
   }>;
-  /** Total number of holders */
-  total: number;
+  /** Whether this is the last page */
+  isLastPage: boolean;
   /** Current page number */
-  page: number;
+  currentPage: number;
   /** Number of items per page */
-  per_page: number;
+  perPage: number;
+}
+
+/**
+ * Paginated response containing NFTs inside a kiosk.
+ */
+export interface PaginatedKioskNFTs {
+  /** Kiosk object */
+  kiosk: NFTKiosk;
+  /** Array of NFT tokens */
+  items: NFTToken[];
+  /** Whether this is the last page */
+  isLastPage: boolean;
+  /** Current page number */
+  currentPage: number;
+  /** Number of items per page */
+  perPage: number;
 }
 
 // Deepbook Stream Types

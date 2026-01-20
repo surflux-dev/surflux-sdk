@@ -28,7 +28,7 @@ async function main() {
     let hasMore = true;
 
     while (hasMore) {
-      const response = await client.getNFTsForCollection({
+      const response = await client.getNFTsByCollection({
         type: collectionType,
         page: currentPage,
         per_page: 50,
@@ -102,7 +102,7 @@ async function main() {
     // Example: Filter NFTs by fields
     console.log('\n=== Filtering NFTs by Fields ===');
     try {
-      const filteredNfts = await client.getNFTsForCollection({
+      const filteredNfts = await client.getNFTsByCollection({
         type: collectionType,
         fields: {
           // Example: filter by rarity if the collection has this field

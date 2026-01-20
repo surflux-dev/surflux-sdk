@@ -35,7 +35,7 @@ async function main() {
     console.log('\nFetching NFTs for an address...');
     const ownerAddress = '0x0000000000000000000000000000000000000000000000000000000000000000'; // Replace with actual address
     try {
-      const ownerNfts = await client.getNFTsForOwner({
+      const ownerNfts = await client.getNFTsByOwner({
         address: ownerAddress,
         page: 1,
         per_page: 10,
@@ -59,7 +59,7 @@ async function main() {
     console.log('\nFetching NFTs for a collection...');
     const collectionType = '0x0000000000000000000000000000000000000000000000000000000000000000::test::NFT'; // Replace with actual collection type
     try {
-      const collectionNfts = await client.getNFTsForCollection({
+      const collectionNfts = await client.getNFTsByCollection({
         type: collectionType,
         page: 1,
         per_page: 10,
