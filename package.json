@@ -1,7 +1,7 @@
 {
   "name": "@surflux/sdk",
-  "version": "0.1.0",
-  "description": "Type-safe Sui event streaming with Surflux integration",
+  "version": "0.2.0",
+  "description": "Ship faster on Sui: consume real-time Surflux streams and indexed data with a simple TypeScript SDK.",
   "publishConfig": {
     "access": "restricted"
   },
@@ -20,7 +20,7 @@
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run build && npm run lint && npm test",
     "dev": "tsc --watch",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
@@ -28,25 +28,43 @@
     "test:unit": "jest --testPathPattern=test/unit",
     "test:e2e": "jest --testPathPattern=test/e2e",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "version:patch": "node scripts/bump-version.js patch",
+    "version:minor": "node scripts/bump-version.js minor",
+    "version:major": "node scripts/bump-version.js major"
   },
   "keywords": [
-    "sui",
-    "blockchain",
-    "events",
     "surflux",
+    "sui",
+    "sui blockchain",
+    "blockchain",
+    "indexer",
+    "streaming",
+    "websocket",
+    "events",
+    "transactions",
+    "sdk",
     "typescript",
-    "types"
+    "types",
+    "api client"
   ],
-  "author": "",
+  "homepage": "https://surflux.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/surflux-dev/surflux-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/surflux-dev/surflux-sdk/issues"
+  },
+  "author": "Surflux",
   "license": "MIT",
   "dependencies": {
-    "@mysten/sui": "^1.45.0",
+    "@mysten/sui": "^1.45.2",
     "axios": "^1.13.2",
-    "chalk": "^4.1.2",
-    "commander": "^11.1.0",
-    "eventsource-client": "^1.0.0",
-    "fs-extra": "^11.2.0"
+    "chalk": "^5.6.2",
+    "commander": "^14.0.2",
+    "eventsource-client": "^1.2.0",
+    "fs-extra": "^11.3.3"
   },
   "peerDependencies": {
     "typescript": ">=4.0.0"
@@ -57,17 +75,24 @@
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
-    "@types/jest": "^29.5.11",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.10.0",
-    "@typescript-eslint/eslint-plugin": "^8.52.0",
-    "@typescript-eslint/parser": "^8.52.0",
+    "@typescript-eslint/eslint-plugin": "^8.53.1",
+    "@typescript-eslint/parser": "^8.53.1",
     "eslint": "^9.39.2",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.1.1",
-    "typescript": "^5.3.3"
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.9.3"
   },
   "files": [
     "dist",
-    "README.md"
-  ]
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "SECURITY.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
 }

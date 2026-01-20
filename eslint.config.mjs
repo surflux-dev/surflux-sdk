@@ -61,6 +61,12 @@ export default [
       '@typescript-eslint/no-unsafe-member-access': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
       '@typescript-eslint/unbound-method': 'warn',
+      // Formatting rules that complement EditorConfig
+      // Note: indent rule is deprecated - EditorConfig handles indentation
+      'eol-last': ['error', 'always'], // Require newline at end of file (matches EditorConfig)
+      'no-trailing-spaces': 'error', // Remove trailing whitespace (matches EditorConfig)
+      'no-multiple-empty-lines': ['error', { max: 2, maxEOF: 1 }], // Limit blank lines
+      // Code quality rules
       'no-console': 'off',
       'prefer-const': 'error',
       'no-var': 'error',
