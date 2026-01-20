@@ -5,84 +5,84 @@
  * to query trading pools, trades, order books, and OHLCV data.
  */
 
-import { SurfluxDeepbookClient, SurfluxNetwork } from '../src/index';
+import { SurfluxIndexerClient, SurfluxNetwork } from '../dist';
 
 async function main() {
   // Initialize the client
-  const client = new SurfluxDeepbookClient({
+  console.log('1. Initializing SurfluxIndexerClient...');
+
+  const surfluxClient = new SurfluxIndexerClient({
     apiKey: process.env.SURFLUX_API_KEY || 'your-api-key-here',
-    network: SurfluxNetwork.TESTNET,
+    network: SurfluxNetwork.MAINNET,
   });
 
-  try {
-    // Get all available pools
-    console.log('Fetching all pools...');
-    const pools = await client.getPools();
-    console.log(`Found ${pools.length} pools`);
+  console.log('Surflux Deepbook Client Initialized\n');
 
-    if (pools.length > 0) {
-      const pool = pools[0];
-      console.log(`\nFirst pool: ${pool.pool_name}`);
-      console.log(`  Base: ${pool.base_asset_symbol} (${pool.base_asset_decimals} decimals)`);
-      console.log(`  Quote: ${pool.quote_asset_symbol} (${pool.quote_asset_decimals} decimals)`);
+  // Get All Pools
+  console.log('2. Fetching all pools...');
 
-      // Get recent trades
-      console.log(`\nFetching recent trades for ${pool.pool_name}...`);
-      const trades = await client.getTrades({
-        pool_name: pool.pool_name,
-        limit: 5,
-      });
-      console.log(`Found ${trades.length} trades`);
+  const pools = await surfluxClient.deepbook.getPools();
 
-      if (trades.length > 0) {
-        const trade = trades[0];
-        console.log(`\nLatest trade:`);
-        console.log(`  Price: ${trade.price}`);
-        console.log(`  Quantity: ${trade.base_quantity} ${pool.base_asset_symbol}`);
-        console.log(`  Value: ${trade.quote_quantity} ${pool.quote_asset_symbol}`);
-      }
+  console.log(`Found ${pools.length} pools\n`);
 
-      // Get order book
-      console.log(`\nFetching order book for ${pool.pool_name}...`);
-      const orderBook = await client.getOrderBook({
-        pool_name: pool.pool_name,
-        limit: 5,
-      });
-      console.log(`Order book depth:`);
-      console.log(`  Bids: ${orderBook.bids.length} levels`);
-      console.log(`  Asks: ${orderBook.asks.length} levels`);
+  // Get SUI_USDC Pool
+  const suiUsdcPool = pools.find(pool => pool.pool_name === 'SUI_USDC');
+  if (!suiUsdcPool) {
+    console.log('SUI_USDC pool not found');
+    return;
+  }
 
-      if (orderBook.bids.length > 0 && orderBook.asks.length > 0) {
-        const bestBid = parseFloat(orderBook.bids[0].price);
-        const bestAsk = parseFloat(orderBook.asks[0].price);
-        const spread = bestAsk - bestBid;
-        console.log(`  Best bid: ${bestBid}`);
-        console.log(`  Best ask: ${bestAsk}`);
-        console.log(`  Spread: ${spread.toFixed(6)}`);
-      }
+  console.log(`SUI_USDC pool id: ${suiUsdcPool.pool_id}`);
+  console.log(` - Base: ${suiUsdcPool.base_asset_symbol} (${suiUsdcPool.base_asset_decimals} decimals)`);
+  console.log(` - Quote: ${suiUsdcPool.quote_asset_symbol} (${suiUsdcPool.quote_asset_decimals} decimals)`);
+  console.log('');
 
-      // Get OHLCV candles
-      console.log(`\nFetching OHLCV candles for ${pool.pool_name}...`);
-      const candles = await client.getOHLCV({
-        pool_name: pool.pool_name,
-        timeframe: '1h',
-        limit: 5,
-      });
-      console.log(`Found ${candles.length} candles`);
+  // Get recent trades
+  console.log(`3. Fetching recent trades for the SUI_USDC pool...`);
+  const trades = await surfluxClient.deepbook.getTrades({
+    pool_name: 'SUI_USDC',
+    limit: 5,
+  });
+  if (trades.length > 0) {
+    const trade = trades[0];
+    console.log(`Latest trade:`);
+    console.log(` - Price: ${trade.price / 10 ** suiUsdcPool.quote_asset_decimals} ${suiUsdcPool.quote_asset_symbol}`);
+    console.log(` - Quantity: ${trade.base_quantity / 10 ** suiUsdcPool.base_asset_decimals} ${suiUsdcPool.base_asset_symbol}`);
+    console.log(` - Value: ${trade.quote_quantity / 10 ** suiUsdcPool.quote_asset_decimals} ${suiUsdcPool.quote_asset_symbol}`);
+  } else {
+    console.log(`- No trades found`);
+  }
+  console.log('');
 
-      if (candles.length > 0) {
-        const candle = candles[candles.length - 1];
-        console.log(`\nLatest candle:`);
-        console.log(`  Open: ${candle.open}`);
-        console.log(`  High: ${candle.high}`);
-        console.log(`  Low: ${candle.low}`);
-        console.log(`  Close: ${candle.close}`);
-        console.log(`  Volume: ${candle.volume_base} ${pool.base_asset_symbol}`);
-      }
-    }
-  } catch (error) {
-    console.error('Error:', error instanceof Error ? error.message : error);
-    process.exit(1);
+  // Get order book
+  console.log(`4. Fetching order book for the SUI_USDC pool (limit 5)...`);
+  const orderBook = await surfluxClient.deepbook.getOrderBookDepth({
+    pool_name: 'SUI_USDC',
+    limit: 5,
+  });
+  console.log('SUI_USDC Order Book:');
+  console.log(' - Bids:');
+  console.log('    Price (raw): Quantity (raw):');
+  for (const bid of orderBook.bids) {
+    console.log(`    ${bid.price}: ${bid.total_quantity}`);
+  }
+  console.log(' - Asks:');
+  console.log('    Price (raw): Quantity (raw):');
+  for (const ask of orderBook.asks) {
+    console.log(`    ${ask.price}: ${ask.total_quantity}`);
+  }
+
+  // Get OHLCV candles
+  console.log(`5. Fetching OHLCV candles for the SUI_USDC pool (timeframe 1h)...`);
+  const candles = await surfluxClient.deepbook.getOHLCV({
+    pool_name: 'SUI_USDC',
+    timeframe: '1h',
+    limit: 5,
+  });
+  console.log('SUI_USDC OHLCV Candles:');
+  console.log('  Tim : Open (raw) : High (raw) : Low (raw) : Close (raw) : Volume (raw)');
+  for (const candle of candles) {
+    console.log(`  ${candle.timestamp} : ${candle.open} : ${candle.high} : ${candle.low} : ${candle.close} : ${candle.volume_base} ${suiUsdcPool.base_asset_symbol}`);
   }
 }
 

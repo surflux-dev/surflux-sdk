@@ -6,7 +6,7 @@ export enum SurfluxNetwork {
 }
 
 // Deepbook API Response Types
-export interface PoolInfo {
+export interface DeepbookPool {
   pool_id: string;
   pool_name: string;
   base_asset_id: string;
@@ -17,20 +17,24 @@ export interface PoolInfo {
   quote_asset_decimals: number;
   quote_asset_symbol: string;
   quote_asset_name: string;
+  min_size: number;
+  lot_size: number;
+  tick_size: number;
 }
 
-export interface OrderBookEntry {
+export interface DeepbookOrderBookDepthLevel {
   price: string;
   total_quantity: string;
   order_count: string;
 }
 
-export interface OrderBookDepth {
-  bids: OrderBookEntry[];
-  asks: OrderBookEntry[];
+export interface DeepbookOrderBookDepth {
+  pool_id: string;
+  bids: DeepbookOrderBookDepthLevel[];
+  asks: DeepbookOrderBookDepthLevel[];
 }
 
-export interface Trade {
+export interface DeepbookTrade {
   event_digest: string;
   digest: string;
   sender: string;
@@ -55,7 +59,7 @@ export interface Trade {
   onchain_timestamp: number;
 }
 
-export interface OHLCVCandle {
+export interface DeepbookOHLCVCandle {
   timestamp: string;
   open: string;
   high: string;
@@ -67,23 +71,32 @@ export interface OHLCVCandle {
 }
 
 // Deepbook Request Interfaces
-export interface GetTradesParams {
+export interface GetDeepbookTradesParams {
+  /** The name of the trading pool */
   pool_name: string;
-  from?: number; // Unix timestamp in seconds
-  to?: number; // Unix timestamp in seconds
+  /** Start timestamp in seconds (UNIX timestamp). Defaults to 1 day ago. */
+  from?: number;
+  /** End timestamp in seconds (UNIX timestamp). Defaults to current time. */
+  to?: number;
+  /** Maximum number of results to return. Defaults to 100. */
   limit?: number;
 }
 
-export interface GetOrderBookParams {
+export interface GetDeepbookOrderBookDepthParams {
+  /** DeepBook pool name (e.g., SUI_USDC) */
   pool_name: string;
+  /** Maximum number of price levels to return for each side (bids/asks). Max 20. */
   limit?: number;
 }
 
-export interface GetOHLCVParams {
+export interface GetDeepbookOHLCVParams {
   pool_name: string;
   timeframe: '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
-  from?: number; // Unix timestamp in seconds
-  to?: number; // Unix timestamp in seconds
+  /** Start timestamp in seconds (UNIX timestamp). Defaults to 1 day ago. */
+  from?: number;
+  /** End timestamp in seconds (UNIX timestamp). Defaults to current time. */
+  to?: number;
+  /** Maximum number of results to return */
   limit?: number;
 }
 
@@ -358,7 +371,7 @@ export interface DeepbookEventBase {
 
 export interface DeepbookLiveTradeEvent extends DeepbookEventBase {
   type: 'deepbook_live_trades';
-  data: Trade;
+  data: DeepbookTrade;
 }
 
 export interface DeepbookOrderBookDepthEvent extends DeepbookEventBase {

@@ -189,47 +189,55 @@ Access trading pools, order books, trades, and OHLCV data.
 ```typescript
 import { SurfluxIndexerClient, SurfluxNetwork } from '@surflux/sdk';
 
-const indexer = new SurfluxIndexerClient({
+const surfluxClient = new SurfluxIndexerClient({
   apiKey: 'your-api-key',
-  network: SurfluxNetwork.TESTNET
+  network: SurfluxNetwork.MAINNET
 });
 ```
 
 #### Get All Pools
 
+Returns a list of all available pools with detailed information about base and quote assets.
+
 ```typescript
-const pools = await indexer.deepbook.getPools();
+const pools = await surfluxClient.deepbook.getPools();
 ```
 
 #### Get Trades
 
+Returns historical trade data for a specified DeepBook pool.
+
 ```typescript
-const trades = await indexer.deepbook.getTrades({
-  pool_name: 'SUI-USDC',
-  from: 1699999999,  // Unix timestamp in seconds
-  to: 1700000000,
+const trades = await surfluxClient.deepbook.getTrades({
+  pool_name: 'SUI_USDC',
+  from: 1737705600,
+  to: 1737792000,
   limit: 100
 });
 ```
 
-#### Get Order Book
+#### Get Order Book Depth
+
+Returns the current bids and asks orders for a specified DeepBook pool.
 
 ```typescript
-const orderBook = await indexer.deepbook.getOrderBook({
-  pool_name: 'SUI-USDC',
+const { bids, asks } = await surfluxClient.deepbook.getOrderBookDepth({
+  pool_name: 'SUI_USDC',
   limit: 20
 });
 ```
 
 #### Get OHLCV Candles
 
+Returns the OHLCV (Open, High, Low, Close, Volume) candlestick data for a specified DeepBook pool.
+
 ```typescript
-const candles = await indexer.deepbook.getOHLCV({
-  pool_name: 'SUI-USDC',
+const candlesticks = await surfluxClient.deepbook.getOHLCV({
+  pool_name: 'SUI_USDC',
   timeframe: '1h',  // '1m' | '5m' | '15m' | '1h' | '4h' | '1d'
-  from: 1699999999,
-  to: 1700000000,
-  limit: 100
+  from: 1758603270,
+  to: 1758703270,
+  limit: 50
 });
 ```
 
@@ -567,7 +575,7 @@ getTrades(params: {
   to?: number;
   limit?: number;
 }): Promise<Trade[]>
-getOrderBook(params: {
+getOrderBookDepth(params: {
   pool_name: string;
   limit?: number;
 }): Promise<OrderBookDepth>

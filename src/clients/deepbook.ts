@@ -1,11 +1,11 @@
 import {
-  PoolInfo,
-  OrderBookDepth,
-  Trade,
-  OHLCVCandle,
-  GetOrderBookParams,
-  GetTradesParams,
-  GetOHLCVParams,
+  DeepbookPool,
+  DeepbookOrderBookDepth,
+  DeepbookTrade,
+  DeepbookOHLCVCandle,
+  GetDeepbookOrderBookDepthParams,
+  GetDeepbookTradesParams,
+  GetDeepbookOHLCVParams,
   SurfluxClientConfig,
 } from '../types';
 import {
@@ -55,10 +55,10 @@ export class SurfluxDeepbookClient {
    * const pools = await client.getPools();
    * ```
    */
-  public async getPools(): Promise<PoolInfo[]> {
+  public async getPools(): Promise<DeepbookPool[]> {
     const url = `${this.baseUrl}/deepbook/get_pools`;
 
-    return httpRequest<PoolInfo[]>(url, {
+    return httpRequest<DeepbookPool[]>(url, {
       apiKey: this.apiKey,
     });
   }
@@ -84,7 +84,7 @@ export class SurfluxDeepbookClient {
    * });
    * ```
    */
-  public async getTrades(params: GetTradesParams): Promise<Trade[]> {
+  public async getTrades(params: GetDeepbookTradesParams): Promise<DeepbookTrade[]> {
     this.#validatePoolName(params.pool_name);
     this.#validateTimestampRange(params.from, params.to);
     this.#validateLimit(params.limit);
@@ -93,7 +93,7 @@ export class SurfluxDeepbookClient {
     const queryParams = buildQueryParams({ from, to, limit });
     const url = `${this.baseUrl}/deepbook/${pool_name}/trades`;
 
-    return httpRequest<Trade[]>(url, {
+    return httpRequest<DeepbookTrade[]>(url, {
       apiKey: this.apiKey,
       params: queryParams,
     });
@@ -110,13 +110,13 @@ export class SurfluxDeepbookClient {
    *
    * @example
    * ```typescript
-   * const orderBook = await client.getOrderBook({
+   * const orderBook = await client.getOrderBookDepth({
    *   pool_name: 'SUI-USDC',
    *   limit: 20
    * });
    * ```
    */
-  public async getOrderBook(params: GetOrderBookParams): Promise<OrderBookDepth> {
+  public async getOrderBookDepth(params: GetDeepbookOrderBookDepthParams): Promise<DeepbookOrderBookDepth> {
     this.#validatePoolName(params.pool_name);
     this.#validateLimit(params.limit);
 
@@ -124,7 +124,7 @@ export class SurfluxDeepbookClient {
     const queryParams = buildQueryParams({ limit });
     const url = `${this.baseUrl}/deepbook/${pool_name}/order-book-depth`;
 
-    return httpRequest<OrderBookDepth>(url, {
+    return httpRequest<DeepbookOrderBookDepth>(url, {
       apiKey: this.apiKey,
       params: queryParams,
     });
@@ -153,7 +153,7 @@ export class SurfluxDeepbookClient {
    * });
    * ```
    */
-  public async getOHLCV(params: GetOHLCVParams): Promise<OHLCVCandle[]> {
+  public async getOHLCV(params: GetDeepbookOHLCVParams): Promise<DeepbookOHLCVCandle[]> {
     this.#validatePoolName(params.pool_name);
     this.#validateTimeframe(params.timeframe);
     this.#validateTimestampRange(params.from, params.to);
@@ -163,7 +163,7 @@ export class SurfluxDeepbookClient {
     const queryParams = buildQueryParams({ from, to, limit });
     const url = `${this.baseUrl}/deepbook/${pool_name}/ohlcv/${timeframe}`;
 
-    return httpRequest<OHLCVCandle[]>(url, {
+    return httpRequest<DeepbookOHLCVCandle[]>(url, {
       apiKey: this.apiKey,
       params: queryParams,
     });
