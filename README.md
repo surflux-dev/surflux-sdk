@@ -1,19 +1,50 @@
-## Features
+# Surflux SDK
 
-- **Event Streaming**: Real-time Server-Sent Events (SSE) for Sui package events
-- **Deepbook Event Streaming**: Real-time streaming for Deepbook trading events (live trades, order book updates, etc.)
-- **Automatic Type Generation**: Generate TypeScript types directly from Sui package events
-- **NFT API**: Query NFT collections, tokens, and holders
-- **Deepbook API**: Access trading pools, order books, trades, and OHLCV data
-- **Full Type Safety**: Complete TypeScript support with IntelliSense
-- **Framework Agnostic**: Works with NestJS, React, Next.js, and any TypeScript project
-- **Browser & Node.js**: Works in both environments
+<div align="center">
+
+<img src="https://surflux.dev/logo/logo-teal.svg" alt="Surflux Logo" width="400">
+
+**Ship faster on Sui: consume real-time Surflux streams and indexed data with a simple TypeScript SDK.**
+
+[![npm version](https://img.shields.io/npm/v/@surflux/sdk.svg)](https://www.npmjs.com/package/@surflux/sdk)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
+
+[Documentation](#) • [Examples](./examples/) • [Changelog](./CHANGELOG.md) • [Contributing](./CONTRIBUTING.md)
+
+</div>
+
+---
+
+## Overview
+
+The Surflux SDK is a production-ready TypeScript SDK for interacting with the Surflux platform on Sui blockchain. It provides real-time event streaming, comprehensive NFT APIs, and Deepbook trading data access with full type safety and IntelliSense support.
+
+### Key Features
+
+- **Real-time Event Streaming** - Server-Sent Events (SSE) for Sui package events and Deepbook trading events
+- **Automatic Type Generation** - Generate TypeScript types directly from Sui package events
+- **NFT API** - Query NFT collections, tokens, and holders with pagination support
+- **Deepbook API** - Access trading pools, order books, trades, and OHLCV data
+- **Full Type Safety** - Complete TypeScript support with IntelliSense
+- **Framework Agnostic** - Works with NestJS, React, Next.js, and any TypeScript project
+- **Cross-Platform** - Works in both browser and Node.js environments
+
+---
 
 ## Installation
 
 ```bash
 npm install @surflux/sdk
 ```
+
+### Requirements
+
+- Node.js 18+ and npm 9+
+- TypeScript 4.0+ (recommended)
+
+---
 
 ## Quick Start
 
@@ -27,15 +58,27 @@ For real-time event streaming (Deepbook Events and Package Events), you'll also 
 
 ### 3. Generate Event Types (Optional)
 
+Generate TypeScript types from your Sui package events:
+
 ```bash
 npx @surflux/sdk <packageId> <network> -o ./sui-events
 ```
 
-## Package Event Streaming
+**Supported Networks:**
+- `mainnet`
+- `testnet`
+- `devnet`
+- Custom RPC URL
+
+---
+
+## Usage
+
+### Package Event Streaming
 
 The `SurfluxPackageEventsClient` provides real-time access to Sui package events via Server-Sent Events (SSE).
 
-### Basic Usage
+#### Basic Usage
 
 ```typescript
 import { SurfluxPackageEventsClient, SurfluxNetwork } from '@surflux/sdk';
@@ -53,22 +96,21 @@ client.onEvent('MyEvent', (event) => {
 });
 ```
 
-### Subscribe to All Events
+#### Advanced Features
 
+**Subscribe to All Events:**
 ```typescript
 client.onAll((event) => {
   console.log('Event:', event.type, event.tx_hash);
 });
 ```
 
-### Wait for Event
-
+**Wait for Specific Event:**
 ```typescript
 const event = await client.waitFor('MyEvent', 5000);
 ```
 
-### Pattern Matching
-
+**Pattern Matching:**
 ```typescript
 // Match all events from a module
 client.on('0x123::module::*', (event) => {
@@ -81,8 +123,7 @@ client.on('MyEvent', (event) => {
 });
 ```
 
-### Typed Handlers
-
+**Typed Handlers:**
 ```typescript
 // Use createTypedHandlers for type-safe event handling
 client.createTypedHandlers({
@@ -97,9 +138,13 @@ client.createTypedHandlers({
 
 For more detailed examples, see the [examples directory](./examples/).
 
-## NFT API
+---
 
-### Using SurfluxNFTClient
+### NFT API
+
+Query NFT collections, tokens, and holders with full type safety.
+
+#### Initialize Client
 
 ```typescript
 import { SurfluxNFTClient, SurfluxNetwork } from '@surflux/sdk';
@@ -110,7 +155,7 @@ const client = new SurfluxNFTClient({
 });
 ```
 
-### Get NFT by ID
+#### Get NFT by ID
 
 ```typescript
 const nft = await client.getNFTById({
@@ -118,7 +163,7 @@ const nft = await client.getNFTById({
 });
 ```
 
-### Get NFTs for Owner
+#### Get NFTs for Owner
 
 ```typescript
 const result = await client.getNFTsForOwner({
@@ -127,13 +172,13 @@ const result = await client.getNFTsForOwner({
   per_page: 20
 });
 
-console.log(result.items); // NFTToken[]
+console.log(result.items);      // NFTToken[]
 console.log(result.isLastPage); // boolean
 console.log(result.currentPage); // number
-console.log(result.perPage); // number
+console.log(result.perPage);     // number
 ```
 
-### Get NFTs for Collection
+#### Get NFTs for Collection
 
 ```typescript
 const result = await client.getNFTsForCollection({
@@ -143,7 +188,7 @@ const result = await client.getNFTsForCollection({
 });
 ```
 
-### Get Collection Holders
+#### Get Collection Holders
 
 ```typescript
 const holders = await client.getCollectionHolders({
@@ -153,11 +198,13 @@ const holders = await client.getCollectionHolders({
 });
 ```
 
-For more detailed examples, see the [examples directory](./examples/).
+---
 
-## Deepbook API
+### Deepbook API
 
-### Using SurfluxDeepbookClient
+Access trading pools, order books, trades, and OHLCV data.
+
+#### Initialize Client
 
 ```typescript
 import { SurfluxDeepbookClient, SurfluxNetwork } from '@surflux/sdk';
@@ -168,24 +215,24 @@ const client = new SurfluxDeepbookClient({
 });
 ```
 
-### Get All Pools
+#### Get All Pools
 
 ```typescript
 const pools = await client.getPools();
 ```
 
-### Get Trades
+#### Get Trades
 
 ```typescript
 const trades = await client.getTrades({
   pool_name: 'SUI-USDC',
-  from: 1699999999,
+  from: 1699999999,  // Unix timestamp in seconds
   to: 1700000000,
   limit: 100
 });
 ```
 
-### Get Order Book
+#### Get Order Book
 
 ```typescript
 const orderBook = await client.getOrderBook({
@@ -194,32 +241,31 @@ const orderBook = await client.getOrderBook({
 });
 ```
 
-### Get OHLCV Candles
+#### Get OHLCV Candles
 
 ```typescript
 const candles = await client.getOHLCV({
   pool_name: 'SUI-USDC',
-  timeframe: '1h',
+  timeframe: '1h',  // '1m' | '5m' | '15m' | '1h' | '4h' | '1d'
   from: 1699999999,
   to: 1700000000,
   limit: 100
 });
 ```
 
-For more detailed examples, see the [examples directory](./examples/).
+---
 
-## Deepbook Event Streaming
+### Deepbook Event Streaming
 
 The `SurfluxDeepbookEventsClient` provides real-time access to Deepbook trading events via Server-Sent Events (SSE).
 
-### All Updates Stream
+#### All Updates Stream
 
-Create a client for receiving all Deepbook events (live trades, order book depth, order placements, cancellations, modifications, and expirations):
+Receive all Deepbook events (live trades, order book depth, order placements, cancellations, modifications, and expirations):
 
 ```typescript
 import { SurfluxDeepbookEventsClient, DeepbookStreamType, SurfluxNetwork } from '@surflux/sdk';
 
-// Create client with ALL_UPDATES stream type
 const client = new SurfluxDeepbookEventsClient({
   streamKey: 'your-stream-key',
   poolName: 'SUI-USDC',
@@ -242,27 +288,14 @@ client.on('deepbook_all_updates_placed', (order) => {
   console.log('Order placed:', order);
 });
 
-client.on('deepbook_all_updates_canceled', (order) => {
-  console.log('Order canceled:', order);
-});
-
-client.on('deepbook_all_updates_modified', (order) => {
-  console.log('Order modified:', order);
-});
-
-client.on('deepbook_all_updates_expired', (order) => {
-  console.log('Order expired:', order);
-});
+// ... and more event types
 ```
 
-### Live Trades Stream
+#### Live Trades Stream
 
-Create a client for receiving only live trades and order book depth updates:
+Receive only live trades and order book depth updates:
 
 ```typescript
-import { SurfluxDeepbookEventsClient, DeepbookStreamType, SurfluxNetwork } from '@surflux/sdk';
-
-// Create client with LIVE_TRADES stream type
 const client = new SurfluxDeepbookEventsClient({
   streamKey: 'your-stream-key',
   poolName: 'SUI-USDC',
@@ -272,17 +305,13 @@ const client = new SurfluxDeepbookEventsClient({
 
 await client.connect();
 
-// Subscribe to event types (only live_trades and order_book_depth available)
+// Only live_trades and order_book_depth available
 client.on('deepbook_live_trades', (trade) => {
   console.log('Trade:', trade);
 });
-
-client.on('deepbook_order_book_depth', (depth) => {
-  console.log('Depth update:', depth);
-});
 ```
 
-### Connect with Filters
+#### Connect with Filters
 
 ```typescript
 // Connect from a specific event ID
@@ -297,43 +326,37 @@ await client.connect({
 });
 ```
 
-### Subscribe to All Events
+#### Additional Methods
 
 ```typescript
+// Subscribe to all events
 client.onAll((event) => {
   console.log('Event type:', event.type);
   console.log('Event data:', event.data);
 });
-```
 
-### Wait for Event
-
-```typescript
+// Wait for specific event
 const trade = await client.waitFor('deepbook_live_trades', 5000);
-console.log('Trade received:', trade);
-```
 
-### Disconnect
-
-```typescript
+// Disconnect
 await client.disconnect();
 ```
 
-For more detailed examples, see the [examples directory](./examples/).
+---
 
-## Framework Examples
+## Framework Integration
 
 ### NestJS
 
 ```typescript
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { SurfluxPackageEventsClient } from '@surflux/sdk';
+import { SurfluxPackageEventsClient, SurfluxNetwork } from '@surflux/sdk';
 
 @Injectable()
 export class EventsService implements OnModuleInit {
   private client = new SurfluxPackageEventsClient({
     streamKey: process.env.SURFLUX_STREAM_KEY!,
-    network: 'testnet'
+    network: SurfluxNetwork.TESTNET
   });
 
   async onModuleInit() {
@@ -351,15 +374,15 @@ export class EventsService implements OnModuleInit {
 
 ```typescript
 import { useEffect, useState } from 'react';
-import { SurfluxPackageEventsClient } from '@surflux/sdk';
+import { SurfluxPackageEventsClient, SurfluxNetwork } from '@surflux/sdk';
 
-function useSuiEvents(apiKey: string, packageId: string) {
+function useSuiEvents(streamKey: string, packageId: string) {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
     const client = new SurfluxPackageEventsClient({
-      streamKey: apiKey,
-      network: 'testnet'
+      streamKey,
+      network: SurfluxNetwork.TESTNET
     });
 
     client.connect().then(() => {
@@ -369,11 +392,13 @@ function useSuiEvents(apiKey: string, packageId: string) {
     });
 
     return () => client.disconnect();
-  }, [apiKey, packageId]);
+  }, [streamKey, packageId]);
 
   return events;
 }
 ```
+
+---
 
 ## API Reference
 
@@ -384,48 +409,84 @@ function useSuiEvents(apiKey: string, packageId: string) {
 ```typescript
 new SurfluxPackageEventsClient(config: {
   streamKey: string;
-  network?: string;
+  network?: SurfluxNetwork;
 })
 ```
 
 #### Methods
 
-- `connect(): Promise<void>` - Connect to event stream
-- `disconnect(): void` - Disconnect from stream
-- `on<T>(eventType: string, handler: (event: T) => void): void` - Subscribe to event
-- `off(eventType: string, handler?: Function): void` - Unsubscribe
-- `onAll(handler: (event) => void): void` - Subscribe to all events
-- `onEvent<T>(eventTypeName: string, handler: (event: T) => void): void` - Typed subscription
-- `waitFor<T>(eventType: string, timeout?: number): Promise<T>` - Wait for event
-- `createTypedHandlers(handlers: Record<string, Function>): void` - Batch handlers
-- `get connected: boolean` - Connection status
-
-### SurfluxIndexersClient
-
-#### Constructor
-
-```typescript
-new SurfluxIndexersClient(apiKey: string, network: 'mainnet' | 'testnet')
-```
+| Method | Description |
+|--------|-------------|
+| `connect(): Promise<void>` | Connect to event stream |
+| `disconnect(): void` | Disconnect from stream |
+| `on<T>(eventType: string, handler: (event: T) => void): void` | Subscribe to event |
+| `off(eventType: string, handler?: Function): void` | Unsubscribe from event |
+| `onAll(handler: (event) => void): void` | Subscribe to all events |
+| `onEvent<T>(eventTypeName: string, handler: (event: T) => void): void` | Typed subscription |
+| `waitFor<T>(eventType: string, timeout?: number): Promise<T>` | Wait for event |
+| `createTypedHandlers(handlers: Record<string, Function>): void` | Batch handlers |
 
 #### Properties
 
-- `deepbook: DeepbookClient` - Deepbook trading data
-- `nft: NFTClient` - NFT collection and token data
+| Property | Type | Description |
+|----------|------|-------------|
+| `connected` | `boolean` | Connection status |
 
-### NFTClient Methods
+---
 
-- `getNFTById(params: { object_id: string }): Promise<NFTToken>`
-- `getNFTsForOwner(params: { address: string, collections?: string[], page?: number, per_page?: number }): Promise<NftsResponseDto>`
-- `getNFTsForCollection(params: { type: string, fields?: object, page?: number, per_page?: number }): Promise<NftsResponseDto>`
-- `getCollectionHolders(params: { type: string, page?: number, per_page?: number }): Promise<CollectionHoldersDto>`
+### SurfluxNFTClient
 
-### DeepbookClient Methods
+#### Methods
 
-- `getPools(): Promise<PoolInfo[]>`
-- `getTrades(params: { pool_name: string, from?: number, to?: number, limit?: number }): Promise<Trade[]>`
-- `getOrderBook(params: { pool_name: string, limit?: number }): Promise<OrderBookDepth>`
-- `getOHLCV(params: { pool_name: string, timeframe: '1m' | '5m' | '15m' | '1h' | '4h' | '1d', from?: number, to?: number, limit?: number }): Promise<OHLCVCandle[]>`
+```typescript
+getNFTById(params: { object_id: string }): Promise<NFTToken>
+getNFTsForOwner(params: {
+  address: string;
+  collections?: string[];
+  page?: number;
+  per_page?: number;
+}): Promise<NftsResponseDto>
+getNFTsForCollection(params: {
+  type: string;
+  fields?: object;
+  page?: number;
+  per_page?: number;
+}): Promise<NftsResponseDto>
+getCollectionHolders(params: {
+  type: string;
+  page?: number;
+  per_page?: number;
+}): Promise<CollectionHoldersDto>
+```
+
+---
+
+### SurfluxDeepbookClient
+
+#### Methods
+
+```typescript
+getPools(): Promise<PoolInfo[]>
+getTrades(params: {
+  pool_name: string;
+  from?: number;
+  to?: number;
+  limit?: number;
+}): Promise<Trade[]>
+getOrderBook(params: {
+  pool_name: string;
+  limit?: number;
+}): Promise<OrderBookDepth>
+getOHLCV(params: {
+  pool_name: string;
+  timeframe: '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
+  from?: number;
+  to?: number;
+  limit?: number;
+}): Promise<OHLCVCandle[]>
+```
+
+---
 
 ### SurfluxDeepbookEventsClient
 
@@ -436,93 +497,120 @@ new SurfluxDeepbookEventsClient<T extends DeepbookStreamType>(config: {
   streamKey: string;
   poolName: string;
   streamType: T;
-  network?: 'mainnet' | 'testnet';
+  network?: SurfluxNetwork;
 })
 ```
 
-**Parameters:**
-- `config.streamKey` - Your Surflux stream key
-- `config.poolName` - The trading pool name (e.g., 'SUI-USDC')
-- `config.streamType` - The stream type (`DeepbookStreamType.ALL_UPDATES` or `DeepbookStreamType.LIVE_TRADES`)
-- `config.network` - Network to use ('mainnet' or 'testnet', default: 'testnet')
+#### Stream Types
 
-**Example:**
-```typescript
-import { SurfluxDeepbookEventsClient, DeepbookStreamType } from '@surflux/sdk';
+**`DeepbookStreamType.ALL_UPDATES`** - All 6 event types:
+- `deepbook_live_trades`
+- `deepbook_order_book_depth`
+- `deepbook_all_updates_canceled`
+- `deepbook_all_updates_placed`
+- `deepbook_all_updates_modified`
+- `deepbook_all_updates_expired`
 
-// For all updates
-const allUpdatesClient = new SurfluxDeepbookEventsClient({
-  streamKey: 'your-stream-key',
-  poolName: 'SUI-USDC',
-  streamType: DeepbookStreamType.ALL_UPDATES,
-  network: 'testnet'
-});
+**`DeepbookStreamType.LIVE_TRADES`** - Only 2 event types:
+- `deepbook_live_trades`
+- `deepbook_order_book_depth`
 
-// For live trades only
-const liveTradesClient = new SurfluxDeepbookEventsClient({
-  streamKey: 'your-stream-key',
-  poolName: 'SUI-USDC',
-  streamType: DeepbookStreamType.LIVE_TRADES,
-  network: 'testnet'
-});
-```
+The client is type-safe - TypeScript will only allow subscribing to event types that are available for the selected stream type.
 
 #### Methods
 
-- `connect(params?: { lastId?: string, type?: DeepbookEventType }): Promise<void>` - Connect to the stream based on the stream type selected in constructor
-  - For `ALL_UPDATES`: accepts `{ lastId?: string, type?: DeepbookEventType }`
-  - For `LIVE_TRADES`: accepts `{ lastId?: string }`
-- `disconnect(): void` - Disconnect from stream
-- `on(eventType: AllowedEventType, handler: (event: EventData) => void): void` - Subscribe to specific event type (type-safe based on stream type)
-- `off(eventType: string, handler?: Function): void` - Unsubscribe from event
-- `onAll(handler: (event: StreamEventType) => void): void` - Subscribe to all events
-- `waitFor(eventType: AllowedEventType, timeout?: number): Promise<EventData>` - Wait for specific event (type-safe)
-- `get connected: boolean` - Connection status
+| Method | Description |
+|--------|-------------|
+| `connect(params?: ConnectParams): Promise<void>` | Connect to stream |
+| `disconnect(): void` | Disconnect from stream |
+| `on(eventType: AllowedEventType, handler: Function): void` | Subscribe to event (type-safe) |
+| `off(eventType: string, handler?: Function): void` | Unsubscribe from event |
+| `onAll(handler: Function): void` | Subscribe to all events |
+| `waitFor(eventType: AllowedEventType, timeout?: number): Promise<EventData>` | Wait for event (type-safe) |
 
-#### Event Types by Stream Type
+---
 
-**For `DeepbookStreamType.ALL_UPDATES` (all 6 event types available):**
-- `deepbook_live_trades` - Live trade events
-- `deepbook_order_book_depth` - Order book depth updates
-- `deepbook_all_updates_canceled` - Order cancellation events
-- `deepbook_all_updates_placed` - Order placement events
-- `deepbook_all_updates_modified` - Order modification events
-- `deepbook_all_updates_expired` - Order expiration events
+## Error Handling
 
-**For `DeepbookStreamType.LIVE_TRADES` (only 2 event types available):**
-- `deepbook_live_trades` - Live trade events
-- `deepbook_order_book_depth` - Order book depth updates
+The SDK provides custom error classes for better error handling:
 
-**Note:** The client is type-safe - TypeScript will only allow subscribing to event types that are available for the selected stream type.
+```typescript
+import {
+  SurfluxError,
+  SurfluxAPIError,
+  SurfluxAuthenticationError,
+  SurfluxRateLimitError,
+  SurfluxNotFoundError,
+  SurfluxNetworkError,
+  SurfluxTimeoutError,
+  SurfluxStreamError
+} from '@surflux/sdk';
 
-## Type Generation
-
-Generate TypeScript types from your Sui package:
-
-```bash
-npx @surflux/sdk <packageId> <network> [options]
+try {
+  await client.getNFTById({ object_id: '0x123...' });
+} catch (error) {
+  if (error instanceof SurfluxAuthenticationError) {
+    console.error('Invalid API key');
+  } else if (error instanceof SurfluxRateLimitError) {
+    console.error('Rate limit exceeded');
+  } else if (error instanceof SurfluxNotFoundError) {
+    console.error('NFT not found');
+  }
+}
 ```
 
-**Options:**
-- `-o, --output <path>` - Output directory (default: `./sui-events`)
+---
 
-**Networks:**
-- `mainnet`
-- `testnet`
-- `devnet`
-- Custom RPC URL
+## Examples
 
-## Requirements
+Comprehensive examples are available in the [examples directory](./examples/):
 
-- Node.js 18+
-- TypeScript 4.0+
-- Surflux API key
+- [Package Events Basic](./examples/package-events-basic.ts)
+- [Package Events Typed](./examples/package-events-typed.ts)
+- [Deepbook Events Basic](./examples/deepbook-events-basic.ts)
+- [Deepbook Events Live Trades](./examples/deepbook-events-live-trades.ts)
+- [NFT Basic](./examples/nft-basic.ts)
+- [NFT Collection Explorer](./examples/nft-collection-explorer.ts)
+- [Deepbook Basic](./examples/deepbook-basic.ts)
+- [Deepbook OHLCV Chart](./examples/deepbook-ohlcv-chart.ts)
+
+---
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## Security
+
+For security vulnerabilities, please email [contact@surflux.dev](mailto:contact@surflux.dev) instead of using the issue tracker. See our [Security Policy](./SECURITY.md) for more details.
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+---
 
 ## Links
 
 - [Surflux Documentation](https://surflux.dev/docs)
 - [Sui Documentation](https://docs.sui.io)
+- [Report an Issue](https://github.com/surflux-dev/surflux-sdk/issues)
+- [Discussions](https://github.com/surflux-dev/surflux-sdk/discussions)
 
-## License
+---
 
-MIT
+<div align="center">
+
+Made by [Surflux](https://surflux.dev)
+
+</div>
