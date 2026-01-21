@@ -572,14 +572,26 @@ The generator creates:
 
 ### Deepbook Event Streaming
 
-The `SurfluxDeepbookEventsClient` provides real-time access to Deepbook trading events via Server-Sent Events (SSE).
+The `SurfluxDeepbookEventsClient` provides real-time access to Deepbook trading events via Server-Sent Events (SSE). It automatically handles connection management, event deduplication through timestamp caching, and provides flexible event subscription patterns.
+
+**Built-in TypeScript Types:** All Deepbook event types are included in the SDK and ready to use. No type generation needed - simply import the types you need from `@surflux/sdk`.
 
 #### All Updates Stream
 
 Receive all Deepbook events (live trades, order book depth, order placements, cancellations, modifications, and expirations):
 
 ```typescript
-import { SurfluxDeepbookEventsClient, DeepbookStreamType, SurfluxNetwork } from '@surflux/sdk';
+import {
+  SurfluxDeepbookEventsClient,
+  DeepbookStreamType,
+  SurfluxNetwork,
+  DeepbookTrade,
+  DeepbookOrderBookDepthData,
+  DeepbookAllUpdatesPlacedData,
+  DeepbookAllUpdatesCanceledData,
+  DeepbookAllUpdatesModifiedData,
+  DeepbookAllUpdatesExpiredData,
+} from '@surflux/sdk';
 
 const client = new SurfluxDeepbookEventsClient({
   streamKey: 'your-stream-key',
@@ -588,22 +600,45 @@ const client = new SurfluxDeepbookEventsClient({
   network: SurfluxNetwork.TESTNET
 });
 
+// Connect to the event stream
 await client.connect();
 
+// Check connection status
+if (client.connected) {
+  console.log('Connected to Deepbook all updates stream');
+}
+
 // Subscribe to specific event types (all 6 event types available)
-client.on('deepbook_live_trades', (trade) => {
+// All handlers are fully typed with built-in SDK types
+client.on('deepbook_live_trades', (trade: DeepbookTrade) => {
   console.log('Live trade:', trade);
+  console.log('Price:', trade.price, 'Quantity:', trade.base_quantity);
 });
 
-client.on('deepbook_order_book_depth', (depth) => {
+client.on('deepbook_order_book_depth', (depth: DeepbookOrderBookDepthData) => {
   console.log('Order book depth:', depth);
+  console.log('Bids:', depth.bids.length, 'Asks:', depth.asks.length);
 });
 
-client.on('deepbook_all_updates_placed', (order) => {
+client.on('deepbook_all_updates_placed', (order: DeepbookAllUpdatesPlacedData) => {
   console.log('Order placed:', order);
+  console.log('Order ID:', order.order_id, 'Price:', order.price);
 });
 
-// ... and more event types
+client.on('deepbook_all_updates_canceled', (order: DeepbookAllUpdatesCanceledData) => {
+  console.log('Order canceled:', order.order_id);
+});
+
+client.on('deepbook_all_updates_modified', (order: DeepbookAllUpdatesModifiedData) => {
+  console.log('Order modified:', order.order_id);
+});
+
+client.on('deepbook_all_updates_expired', (order: DeepbookAllUpdatesExpiredData) => {
+  console.log('Order expired:', order.order_id);
+});
+
+// Clean up when done
+await client.disconnect();
 ```
 
 #### Live Trades Stream
@@ -620,16 +655,93 @@ const client = new SurfluxDeepbookEventsClient({
 
 await client.connect();
 
+// Check connection status
+if (client.connected) {
+  console.log('Connected to Deepbook live trades stream');
+}
+
 // Only live_trades and order_book_depth available
 client.on('deepbook_live_trades', (trade) => {
   console.log('Trade:', trade);
 });
 ```
 
+#### Built-in TypeScript Types
+
+All Deepbook event types are built into the SDK and ready to use. No type generation needed:
+
+```typescript
+import {
+  SurfluxDeepbookEventsClient,
+  DeepbookStreamType,
+  DeepbookEventType,
+  SurfluxNetwork,
+  // Built-in event types
+  DeepbookTrade,
+  DeepbookOrderBookDepthData,
+  DeepbookAllUpdatesPlacedData,
+  DeepbookAllUpdatesCanceledData,
+  DeepbookAllUpdatesModifiedData,
+  DeepbookAllUpdatesExpiredData,
+  // Event interfaces
+  DeepbookLiveTradeEvent,
+  DeepbookOrderBookDepthEvent,
+  DeepbookEvent,
+} from '@surflux/sdk';
+
+// Type-safe event handling with built-in types
+const client = new SurfluxDeepbookEventsClient({
+  streamKey: 'your-stream-key',
+  poolName: 'SUI-USDC',
+  streamType: DeepbookStreamType.ALL_UPDATES,
+  network: SurfluxNetwork.TESTNET
+});
+
+await client.connect();
+
+// All event handlers are fully typed
+client.on('deepbook_live_trades', (trade: DeepbookTrade) => {
+  // trade is fully typed with all fields
+  console.log('Price:', trade.price);
+  console.log('Quantity:', trade.base_quantity);
+  console.log('Maker:', trade.maker_order_id);
+  console.log('Taker:', trade.taker_order_id);
+});
+
+client.on('deepbook_order_book_depth', (depth: DeepbookOrderBookDepthData) => {
+  // depth is fully typed
+  console.log('Bids:', depth.bids);
+  console.log('Asks:', depth.asks);
+  console.log('Pool ID:', depth.pool_id);
+});
+
+client.on('deepbook_all_updates_placed', (order: DeepbookAllUpdatesPlacedData) => {
+  // order is fully typed
+  console.log('Order ID:', order.order_id);
+  console.log('Price:', order.price);
+  console.log('Quantity:', order.placed_quantity);
+  console.log('Trader:', order.trader);
+});
+```
+
+#### Available Event Types
+
+**For ALL_UPDATES stream:**
+- `deepbook_live_trades` - Live trade executions
+- `deepbook_order_book_depth` - Order book depth updates
+- `deepbook_all_updates_placed` - New orders placed
+- `deepbook_all_updates_canceled` - Orders canceled
+- `deepbook_all_updates_modified` - Orders modified
+- `deepbook_all_updates_expired` - Orders expired
+
+**For LIVE_TRADES stream:**
+- `deepbook_live_trades` - Live trade executions
+- `deepbook_order_book_depth` - Order book depth updates
+
 #### Connect with Filters
 
 ```typescript
-// Connect from a specific event ID
+// Connect from a specific event ID (resume from a previous position)
 await client.connect({
   lastId: '1755091934020-0'
 });
@@ -637,24 +749,180 @@ await client.connect({
 // For ALL_UPDATES stream, filter by event type
 await client.connect({
   lastId: '1755091934020-0',
-  type: 'deepbook_live_trades'
+  type: DeepbookEventType.LIVE_TRADES // or 'deepbook_live_trades'
 });
 ```
 
-#### Additional Methods
+#### Advanced Features
 
+**Subscribe to All Events:**
 ```typescript
-// Subscribe to all events
-client.onAll((event) => {
+// Listen to all events (receives full event object with metadata)
+client.onAll((event: DeepbookEvent) => {
   console.log('Event type:', event.type);
+  console.log('Transaction hash:', event.tx_hash);
+  console.log('Timestamp:', event.timestamp_ms);
+  console.log('Checkpoint ID:', event.checkpoint_id);
   console.log('Event data:', event.data);
 });
+```
 
-// Wait for specific event
-const trade = await client.waitFor('deepbook_live_trades', 5000);
+**Wait for Specific Event:**
+```typescript
+// Wait for an event with optional timeout (in milliseconds)
+try {
+  const trade = await client.waitFor('deepbook_live_trades', 5000); // 5 second timeout
+  console.log('Trade received:', trade);
+} catch (error) {
+  console.error('Timeout waiting for event:', error);
+}
+```
 
-// Disconnect
-await client.disconnect();
+**Unsubscribe from Events:**
+```typescript
+// Define handler function
+const tradeHandler = (trade: DeepbookTrade) => {
+  console.log('Trade:', trade);
+};
+
+// Subscribe
+client.on('deepbook_live_trades', tradeHandler);
+
+// Unsubscribe specific handler
+client.off('deepbook_live_trades', tradeHandler);
+
+// Unsubscribe all handlers for an event type
+client.off('deepbook_live_trades');
+```
+
+**Caching for Event Deduplication:**
+
+The client automatically caches the latest event timestamp to prevent processing duplicate events after reconnection. You can provide a custom cache adapter for persistent storage:
+
+```typescript
+// Example: Using a custom cache adapter (e.g., Redis, database, etc.)
+const cacheAdapter = {
+  get: async (key: string): Promise<string | null> => {
+    // Retrieve from your cache storage
+    const value = await yourCacheService.get(key);
+    return value ?? null;
+  },
+  set: async (key: string, value: string): Promise<void> => {
+    // Store in your cache storage
+    await yourCacheService.set(key, value);
+  }
+};
+
+const client = new SurfluxDeepbookEventsClient({
+  streamKey: 'your-stream-key',
+  poolName: 'SUI-USDC',
+  streamType: DeepbookStreamType.ALL_UPDATES,
+  network: SurfluxNetwork.TESTNET,
+  cache: cacheAdapter // Optional: if not provided, uses in-memory cache
+});
+
+// The cache key used internally is: 'surflux_deepbook_events_last_timestamp'
+// You can prefix it in your cache implementation if needed
+```
+
+**Starting from a Specific Timestamp:**
+```typescript
+// Process only events after a specific timestamp (in milliseconds)
+const client = new SurfluxDeepbookEventsClient({
+  streamKey: 'your-stream-key',
+  poolName: 'SUI-USDC',
+  streamType: DeepbookStreamType.ALL_UPDATES,
+  network: SurfluxNetwork.TESTNET,
+  fromTimestampMs: Date.now() - 3600000 // Last hour only
+});
+
+// If fromTimestampMs is not provided, the client will use the cached timestamp
+// (if available) or process all events from the moment of connection
+```
+
+**Error Handling:**
+```typescript
+try {
+  await client.connect();
+  
+  if (!client.connected) {
+    throw new Error('Failed to establish connection');
+  }
+  
+  client.on('deepbook_live_trades', (trade: DeepbookTrade) => {
+    // Handler errors are caught internally and logged
+    console.log('Trade:', trade);
+  });
+} catch (error) {
+  console.error('Connection error:', error);
+  // Handle connection failure
+}
+```
+
+**Complete Example with NestJS-style Service:**
+```typescript
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import {
+  SurfluxDeepbookEventsClient,
+  DeepbookStreamType,
+  SurfluxNetwork,
+  DeepbookTrade,
+  DeepbookOrderBookDepthData,
+} from '@surflux/sdk';
+
+@Injectable()
+export class DeepbookEventsService implements OnModuleDestroy {
+  private client: SurfluxDeepbookEventsClient | null = null;
+
+  async initialize() {
+    this.client = new SurfluxDeepbookEventsClient({
+      streamKey: process.env.SURFLUX_STREAM_KEY!,
+      poolName: 'SUI-USDC',
+      streamType: DeepbookStreamType.ALL_UPDATES,
+      network: SurfluxNetwork.TESTNET,
+      cache: {
+        get: async (key: string) => {
+          return await this.cacheService.get(key);
+        },
+        set: async (key: string, value: string) => {
+          await this.cacheService.set(key, value);
+        }
+      }
+    });
+
+    await this.client.connect();
+    
+    if (this.client.connected) {
+      this.setupEventHandlers();
+    }
+  }
+
+  private setupEventHandlers() {
+    if (!this.client) return;
+
+    this.client.on('deepbook_live_trades', (trade: DeepbookTrade) => {
+      console.log('Live trade:', trade.price, trade.base_quantity);
+    });
+
+    this.client.on('deepbook_order_book_depth', (depth: DeepbookOrderBookDepthData) => {
+      console.log('Order book updated:', depth.bids.length, 'bids,', depth.asks.length, 'asks');
+    });
+
+    this.client.on('deepbook_all_updates_placed', (order) => {
+      console.log('Order placed:', order.order_id);
+    });
+  }
+
+  onModuleDestroy() {
+    if (this.client) {
+      this.client.disconnect();
+    }
+  }
+
+  isConnected(): boolean {
+    return this.client?.connected || false;
+  }
+}
 ```
 
 ---
