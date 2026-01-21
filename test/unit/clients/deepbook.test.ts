@@ -3,13 +3,13 @@ import { SurfluxNetwork } from '../../../src/types';
 import { httpRequest } from '../../../src/utils/http';
 import { getApiBaseUrl } from '../../../src/constants';
 import type {
-  PoolInfo,
-  Trade,
-  OrderBookDepth,
-  OHLCVCandle,
-  GetTradesParams,
-  GetOrderBookParams,
-  GetOHLCVParams,
+  DeepbookPool,
+  DeepbookTrade,
+  DeepbookOrderBookDepth,
+  DeepbookOHLCVCandle,
+  GetDeepbookTradesParams,
+  GetDeepbookOrderBookDepthParams,
+  GetDeepbookOHLCVParams,
   SurfluxClientConfig,
 } from '../../../src/types';
 
@@ -295,7 +295,7 @@ describe('DeepbookClient', () => {
   //   });
   // });
 
-  // describe('getOrderBook', () => {
+  // describe('getOrderBookDepth', () => {
   //   let client: DeepbookClient;
 
   //   beforeEach(() => {
@@ -330,14 +330,14 @@ describe('DeepbookClient', () => {
   //       ],
   //     };
 
-  //     const params: GetOrderBookParams = {
+  //     const params: GetOrderBookDepthParams = {
   //       pool_name: 'SUI-USDC',
   //       limit: 20,
   //     };
 
   //     mockHttpRequest.mockResolvedValue(mockOrderBook);
 
-  //     const result = await client.getOrderBook(params);
+  //     const result = await client.getOrderBookDepth(params);
 
   //     expect(result).toEqual(mockOrderBook);
   //     expect(result.bids).toHaveLength(2);
@@ -360,13 +360,13 @@ describe('DeepbookClient', () => {
   //       asks: [],
   //     };
 
-  //     const params: GetOrderBookParams = {
+  //     const params: GetOrderBookDepthParams = {
   //       pool_name: 'SUI-USDC',
   //     };
 
   //     mockHttpRequest.mockResolvedValue(mockOrderBook);
 
-  //     const result = await client.getOrderBook(params);
+  //     const result = await client.getOrderBookDepth(params);
 
   //     expect(result).toEqual(mockOrderBook);
   //     expect(mockHttpRequest).toHaveBeenCalledWith(
@@ -384,26 +384,26 @@ describe('DeepbookClient', () => {
   //       asks: [],
   //     };
 
-  //     const params: GetOrderBookParams = {
+  //     const params: GetOrderBookDepthParams = {
   //       pool_name: 'SUI-USDC',
   //     };
 
   //     mockHttpRequest.mockResolvedValue(mockOrderBook);
 
-  //     const result = await client.getOrderBook(params);
+  //     const result = await client.getOrderBookDepth(params);
   //     expect(result.bids).toEqual([]);
   //     expect(result.asks).toEqual([]);
   //   });
 
   //   it('should handle API errors', async () => {
   //     const errorMessage = 'API error: 404 Pool not found';
-  //     const params: GetOrderBookParams = {
+  //     const params: GetOrderBookDepthParams = {
   //       pool_name: 'INVALID-POOL',
   //     };
 
   //     mockHttpRequest.mockRejectedValue(new Error(errorMessage));
 
-  //     await expect(client.getOrderBook(params)).rejects.toThrow(errorMessage);
+  //     await expect(client.getOrderBookDepth(params)).rejects.toThrow(errorMessage);
   //   });
   // });
 
@@ -869,12 +869,12 @@ describe('DeepbookClient', () => {
     //     ).rejects.toThrow();
     //   });
 
-    //   it('should validate limit in getOrderBook', async () => {
+    //   it('should validate limit in getOrderBookDepth', async () => {
     //     await expect(
-    //       client.getOrderBook({ pool_name: 'SUI-USDC', limit: 0 })
+    //       client.getOrderBookDepth({ pool_name: 'SUI-USDC', limit: 0 })
     //     ).rejects.toThrow('Limit must be at least 1, got: 0.');
     //     await expect(
-    //       client.getOrderBook({ pool_name: 'SUI-USDC', limit: 1001 })
+    //       client.getOrderBookDepth({ pool_name: 'SUI-USDC', limit: 1001 })
     //     ).rejects.toThrow('Limit cannot exceed 1000, got: 1001.');
     //   });
 

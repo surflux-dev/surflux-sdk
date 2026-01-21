@@ -1,6 +1,6 @@
 export { SurfluxPackageEventsClient, type SurfluxPackageEventsClientConfig } from './clients/package-events';
-export { SurfluxIndexersClient } from './clients/indexers';
-export type { SurfluxIndexersClient as SurfluxIndexersClientType } from './clients/indexers';
+export { SurfluxIndexerClient } from './clients/indexer';
+export type { SurfluxIndexerClient as SurfluxIndexerClientType } from './clients/indexer';
 export { SurfluxDeepbookClient } from './clients/deepbook';
 export type { SurfluxDeepbookClient as SurfluxDeepbookClientType } from './clients/deepbook';
 export { SurfluxNFTClient } from './clients/nft';

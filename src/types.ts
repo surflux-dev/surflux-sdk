@@ -6,7 +6,7 @@ export enum SurfluxNetwork {
 }
 
 // Deepbook API Response Types
-export interface PoolInfo {
+export interface DeepbookPool {
   pool_id: string;
   pool_name: string;
   base_asset_id: string;
@@ -17,20 +17,24 @@ export interface PoolInfo {
   quote_asset_decimals: number;
   quote_asset_symbol: string;
   quote_asset_name: string;
+  min_size: number;
+  lot_size: number;
+  tick_size: number;
 }
 
-export interface OrderBookEntry {
+export interface DeepbookOrderBookDepthLevel {
   price: string;
   total_quantity: string;
   order_count: string;
 }
 
-export interface OrderBookDepth {
-  bids: OrderBookEntry[];
-  asks: OrderBookEntry[];
+export interface DeepbookOrderBookDepth {
+  pool_id: string;
+  bids: DeepbookOrderBookDepthLevel[];
+  asks: DeepbookOrderBookDepthLevel[];
 }
 
-export interface Trade {
+export interface DeepbookTrade {
   event_digest: string;
   digest: string;
   sender: string;
@@ -55,7 +59,7 @@ export interface Trade {
   onchain_timestamp: number;
 }
 
-export interface OHLCVCandle {
+export interface DeepbookOHLCVCandle {
   timestamp: string;
   open: string;
   high: string;
@@ -67,23 +71,32 @@ export interface OHLCVCandle {
 }
 
 // Deepbook Request Interfaces
-export interface GetTradesParams {
+export interface GetDeepbookTradesParams {
+  /** The name of the trading pool */
   pool_name: string;
-  from?: number; // Unix timestamp in seconds
-  to?: number; // Unix timestamp in seconds
+  /** Start timestamp in seconds (UNIX timestamp). Defaults to 1 day ago. */
+  from?: number;
+  /** End timestamp in seconds (UNIX timestamp). Defaults to current time. */
+  to?: number;
+  /** Maximum number of results to return. Defaults to 100. */
   limit?: number;
 }
 
-export interface GetOrderBookParams {
+export interface GetDeepbookOrderBookDepthParams {
+  /** DeepBook pool name (e.g., SUI_USDC) */
   pool_name: string;
+  /** Maximum number of price levels to return for each side (bids/asks). Max 20. */
   limit?: number;
 }
 
-export interface GetOHLCVParams {
+export interface GetDeepbookOHLCVParams {
   pool_name: string;
   timeframe: '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
-  from?: number; // Unix timestamp in seconds
-  to?: number; // Unix timestamp in seconds
+  /** Start timestamp in seconds (UNIX timestamp). Defaults to 1 day ago. */
+  from?: number;
+  /** End timestamp in seconds (UNIX timestamp). Defaults to current time. */
+  to?: number;
+  /** Maximum number of results to return */
   limit?: number;
 }
 
@@ -145,12 +158,12 @@ export interface GetNFTByIdParams {
 /**
  * Parameters for retrieving NFTs owned by an address.
  */
-export interface GetNFTsForOwnerParams {
+export interface GetNFTsByOwnerParams {
   /** The Sui address of the owner */
   address: string;
   /** Optional array of collection types to filter by */
   collections?: string[];
-  /** Optional page number for pagination */
+  /** Optional page number for pagination (starts from 0) */
   page?: number;
   /** Optional number of items per page */
   per_page?: number;
@@ -159,12 +172,12 @@ export interface GetNFTsForOwnerParams {
 /**
  * Parameters for retrieving NFTs in a collection.
  */
-export interface GetNFTsForCollectionParams {
+export interface GetNFTsByCollectionParams {
   /** The collection type (e.g., '0x123::module::NFT') */
   type: string;
   /** Optional JSON object for filtering by field values */
   fields?: Record<string, unknown>;
-  /** Optional page number for pagination */
+  /** Optional page number for pagination (starts from 0) */
   page?: number;
   /** Optional number of items per page */
   per_page?: number;
@@ -176,7 +189,19 @@ export interface GetNFTsForCollectionParams {
 export interface GetCollectionHoldersParams {
   /** The collection type (e.g., '0x123::module::NFT') */
   type: string;
-  /** Optional page number for pagination */
+  /** Optional page number for pagination (starts from 0) */
+  page?: number;
+  /** Optional number of items per page */
+  per_page?: number;
+}
+
+/**
+ * Parameters for retrieving NFTs inside a kiosk.
+ */
+export interface GetKioskNFTsParams {
+  /** The Sui object ID of the kiosk */
+  kiosk_id: string;
+  /** Optional page number for pagination (starts from 0) */
   page?: number;
   /** Optional number of items per page */
   per_page?: number;
@@ -186,7 +211,7 @@ export interface GetCollectionHoldersParams {
 /**
  * Paginated response containing NFT tokens.
  */
-export interface NftsResponseDto {
+export interface PaginatedNFTs {
   /** Array of NFT tokens */
   items: NFTToken[];
   /** Whether this is the last page */
@@ -200,18 +225,34 @@ export interface NftsResponseDto {
 /**
  * Paginated response containing collection holders.
  */
-export interface CollectionHoldersDto {
+export interface PaginatedCollectionHolders {
   /** Array of holder addresses with their NFT counts */
   holders: Array<{
-    address: string;
+    owner: string;
     count: number;
   }>;
-  /** Total number of holders */
-  total: number;
+  /** Whether this is the last page */
+  isLastPage: boolean;
   /** Current page number */
-  page: number;
+  currentPage: number;
   /** Number of items per page */
-  per_page: number;
+  perPage: number;
+}
+
+/**
+ * Paginated response containing NFTs inside a kiosk.
+ */
+export interface PaginatedKioskNFTs {
+  /** Kiosk object */
+  kiosk: NFTKiosk;
+  /** Array of NFT tokens */
+  items: NFTToken[];
+  /** Whether this is the last page */
+  isLastPage: boolean;
+  /** Current page number */
+  currentPage: number;
+  /** Number of items per page */
+  perPage: number;
 }
 
 // Deepbook Stream Types
@@ -330,7 +371,7 @@ export interface DeepbookEventBase {
 
 export interface DeepbookLiveTradeEvent extends DeepbookEventBase {
   type: 'deepbook_live_trades';
-  data: Trade;
+  data: DeepbookTrade;
 }
 
 export interface DeepbookOrderBookDepthEvent extends DeepbookEventBase {

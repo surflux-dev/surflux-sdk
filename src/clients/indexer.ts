@@ -7,14 +7,14 @@ import { __validateIndexerClientConfig } from '../utils';
  * Main client for accessing Surflux indexer services.
  * Provides access to Deepbook and NFT indexer clients.
  */
-export class SurfluxIndexersClient {
+export class SurfluxIndexerClient {
   /** Client for Deepbook trading pool data */
   public readonly deepbook: SurfluxDeepbookClient;
   /** Client for NFT collection and token data */
   public readonly nft: SurfluxNFTClient;
 
   /**
-   * Creates a new SurfluxIndexersClient instance.
+   * Creates a new SurfluxIndexerClient instance.
    *
    * @param config - Configuration object
    * @param config.apiKey - Your Surflux API key
@@ -23,12 +23,12 @@ export class SurfluxIndexersClient {
    *
    * @example
    * ```typescript
-   * const client = new SurfluxIndexersClient({
+   * const client = new SurfluxIndexerClient({
    *   apiKey: 'your-api-key',
    *   network: SurfluxNetwork.TESTNET,
    * });
    * const pools = await client.deepbook.getPools();
-   * const nfts = await client.nft.getNFTsForCollection({ type: '0x...' });
+   * const nfts = await client.nft.getNFTsByCollection({ type: '0x...' });
    * ```
    * @throws {Error} If the API key is invalid or undefined
    */
