@@ -97,62 +97,6 @@ program
       const fileExtension = language === 'typescript' ? 'ts' : 'js';
       await fs.writeFile(path.join(packageOutputDir, `types.${fileExtension}`), types);
 
-      const indexPath = path.join(packageOutputDir, `index.${fileExtension}`);
-      let indexContent: string;
-
-      if (language === 'typescript') {
-        indexContent = `// Re-export types and client for convenience
-export * from './types';
-export { SurfluxPackageEventsClient } from '@surflux/sdk';
-
-// Helper to create a typed client instance
-import { SurfluxPackageEventsClient } from '@surflux/sdk';
-import packageInfo from './package-info.json';
-
-/**
- * Create a SurfluxPackageEventsClient instance for this package
- * @param streamKey Your Surflux stream key
- */
-export function createEventClient(streamKey: string): SurfluxPackageEventsClient {
-  return new SurfluxPackageEventsClient({
-    streamKey,
-    network: packageInfo.network
-  });
-}
-`;
-      } else {
-        indexContent = `// Re-export types and client for convenience
-const types = require('./types');
-const { SurfluxPackageEventsClient } = require('@surflux/sdk');
-const packageInfo = require('./package-info.json');
-
-// Re-export all types
-Object.keys(types).forEach((key) => {
-  if (key !== 'default') {
-    module.exports[key] = types[key];
-  }
-});
-
-module.exports.SurfluxPackageEventsClient = SurfluxPackageEventsClient;
-
-/**
- * Create a SurfluxPackageEventsClient instance for this package
- * @param {string} streamKey Your Surflux stream key
- * @returns {SurfluxPackageEventsClient}
-    */
-  function createEventClient(streamKey) {
-  return new SurfluxPackageEventsClient({
-    streamKey,
-    network: packageInfo.network
-  });
-}
-
-module.exports.createEventClient = createEventClient;
-`;
-      }
-
-      await fs.writeFile(indexPath, indexContent);
-
       const packageInfoPath = path.join(packageOutputDir, 'package-info.json');
       await fs.writeFile(
         packageInfoPath,

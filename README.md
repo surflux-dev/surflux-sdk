@@ -245,7 +245,7 @@ const candlesticks = await surfluxClient.deepbook.getOHLCV({
 
 ### Package Event Streaming
 
-The `SurfluxPackageEventsClient` provides real-time access to Sui package events via Server-Sent Events (SSE).
+The `SurfluxPackageEventsClient` provides real-time access to Sui package events via Server-Sent Events (SSE). It automatically handles connection management, event deduplication through timestamp caching, and provides flexible event subscription patterns.
 
 #### Basic Usage
 
@@ -257,84 +257,316 @@ const client = new SurfluxPackageEventsClient({
   network: SurfluxNetwork.TESTNET
 });
 
+// Connect to the event stream
 await client.connect();
 
-// Subscribe to a specific event type
+// Check connection status
+if (client.connected) {
+  console.log('Connected to event stream');
+}
+
+// Subscribe to a specific event type by full name
+client.onEvent('0x123::module::MyEvent', (event) => {
+  console.log('Event received:', event);
+});
+
+// Or subscribe by event name only (last part after ::)
 client.onEvent('MyEvent', (event) => {
   console.log('Event received:', event);
 });
+
+// Clean up when done
+await client.disconnect();
 ```
 
 #### Advanced Features
 
 **Subscribe to All Events:**
 ```typescript
+// Listen to all events (receives full event object with metadata)
 client.onAll((event) => {
-  console.log('Event:', event.type, event.tx_hash);
+  console.log('Event type:', event.type);
+  console.log('Transaction hash:', event.tx_hash);
+  console.log('Timestamp:', event.timestamp_ms);
+  console.log('Checkpoint ID:', event.checkpoint_id);
+  console.log('Event data:', event.data);
 });
 ```
 
 **Wait for Specific Event:**
 ```typescript
-const event = await client.waitFor('MyEvent', 5000);
+// Wait for an event with optional timeout (in milliseconds)
+try {
+  const event = await client.waitFor('MyEvent', 5000); // 5 second timeout
+  console.log('Event received:', event);
+} catch (error) {
+  console.error('Timeout waiting for event:', error);
+}
 ```
 
 **Pattern Matching:**
 ```typescript
-// Match all events from a module
+// Match all events from a specific module using wildcards
 client.on('0x123::module::*', (event) => {
-  console.log(event);
+  console.log('Event from module:', event);
 });
 
 // Match events by name only (last part after ::)
+// This will match any event named "MyEvent" regardless of module
 client.on('MyEvent', (event) => {
-  console.log(event);
+  console.log('MyEvent received:', event);
 });
+
+// Use on() method directly (onEvent is an alias)
+client.on('0x456::another::Transfer', (event) => {
+  console.log('Transfer event:', event);
+});
+```
+
+**Unsubscribe from Events:**
+```typescript
+// Define handler function
+const handler = (event: MyEventType) => {
+  console.log('Event:', event);
+};
+
+// Subscribe
+client.onEvent('MyEvent', handler);
+
+// Unsubscribe specific handler
+client.off('MyEvent', handler);
+
+// Unsubscribe all handlers for an event type
+client.off('MyEvent');
 ```
 
 **Typed Handlers:**
 ```typescript
 // Use createTypedHandlers for type-safe event handling
+// This is especially useful when you have generated types from your Sui package
 client.createTypedHandlers({
   Transfer: (event: TransferEvent) => {
     console.log('Transfer:', event);
   },
   Mint: (event: MintEvent) => {
     console.log('Mint:', event);
+  },
+  AuctionCreated: (event: AuctionCreatedEvent) => {
+    console.log('Auction created:', event);
   }
 });
+```
+
+**Caching for Event Deduplication:**
+
+The client automatically caches the latest event timestamp to prevent processing duplicate events after reconnection. You can provide a custom cache adapter for persistent storage:
+
+```typescript
+// Example: Using a custom cache adapter (e.g., Redis, database, etc.)
+const cacheAdapter = {
+  get: async (key: string): Promise<string | null> => {
+    // Retrieve from your cache storage
+    const value = await yourCacheService.get(key);
+    return value ?? null;
+  },
+  set: async (key: string, value: string): Promise<void> => {
+    // Store in your cache storage
+    await yourCacheService.set(key, value);
+  }
+};
+
+const client = new SurfluxPackageEventsClient({
+  streamKey: 'your-stream-key',
+  network: SurfluxNetwork.TESTNET,
+  cache: cacheAdapter // Optional: if not provided, uses in-memory cache
+});
+
+// The cache key used internally is: 'surflux_package_events_last_timestamp'
+// You can prefix it in your cache implementation if needed
+```
+
+**Starting from a Specific Timestamp:**
+```typescript
+// Process only events after a specific timestamp (in milliseconds)
+const client = new SurfluxPackageEventsClient({
+  streamKey: 'your-stream-key',
+  network: SurfluxNetwork.TESTNET,
+  fromTimestampMs: Date.now() - 3600000 // Last hour only
+});
+
+// If fromTimestampMs is not provided, the client will use the cached timestamp
+// (if available) or process all events from the moment of connection
+```
+
+**Error Handling:**
+```typescript
+try {
+  await client.connect();
+  
+  if (!client.connected) {
+    throw new Error('Failed to establish connection');
+  }
+  
+  client.onEvent('MyEvent', (event) => {
+    // Handler errors are caught internally and logged
+    console.log('Event:', event);
+  });
+} catch (error) {
+  console.error('Connection error:', error);
+  // Handle connection failure
+}
+```
+
+**Complete Example with NestJS-style Service:**
+```typescript
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { SurfluxPackageEventsClient, SurfluxNetwork } from '@surflux/sdk';
+
+@Injectable()
+export class EventsService implements OnModuleDestroy {
+  private client: SurfluxPackageEventsClient | null = null;
+
+  async initialize() {
+    this.client = new SurfluxPackageEventsClient({
+      streamKey: process.env.SURFLUX_STREAM_KEY!,
+      network: SurfluxNetwork.TESTNET,
+      cache: {
+        get: async (key: string) => {
+          return await this.cacheService.get(key);
+        },
+        set: async (key: string, value: string) => {
+          await this.cacheService.set(key, value);
+        }
+      }
+    });
+
+    await this.client.connect();
+    
+    if (this.client.connected) {
+      this.setupEventHandlers();
+    }
+  }
+
+  private setupEventHandlers() {
+    if (!this.client) return;
+
+    this.client.onEvent('AuctionCreated', (event) => {
+      console.log('Auction created:', event);
+    });
+
+    this.client.onEvent('BidPlaced', (event) => {
+      console.log('Bid placed:', event);
+    });
+  }
+
+  onModuleDestroy() {
+    if (this.client) {
+      this.client.disconnect();
+    }
+  }
+
+  isConnected(): boolean {
+    return this.client?.connected || false;
+  }
+}
 ```
 
 #### Generate Event Types (Optional)
 
-For type-safe event handling with `createTypedHandlers`, you can generate TypeScript types from your Sui package events:
+For type-safe event handling with `createTypedHandlers`, you can generate TypeScript or JavaScript types directly from your published Sui package events. The generator fetches event structures from the Sui blockchain and creates type-safe interfaces for use in your applications.
+
+**Basic Usage:**
 
 ```bash
-npx @surflux/sdk <packageId> <network> -o ./sui-events
+npx @surflux/sdk <packageId> <network> [options]
 ```
 
-**Supported Networks:**
-- `mainnet`
-- `testnet`
-- `devnet`
-- Custom RPC URL
+**Arguments:**
+- `packageId` - The Sui package ID you want to generate types for (e.g., `0x123...abc`)
+- `network` - The Sui network to use (see supported networks below)
 
-The generated types can then be imported and used with typed handlers:
+**Options:**
+- `-o, --output <path>` - Output directory for generated types (default: `./sui-events`)
+
+**Supported Networks:**
+- `mainnet` - Sui mainnet
+- `testnet` - Sui testnet
+- `devnet` - Sui devnet
+- Custom RPC URL - Any valid Sui RPC endpoint (e.g., `https://fullnode.mainnet.sui.io:443`)
+
+**Examples:**
+
+```bash
+# Generate types for a package on mainnet
+npx @surflux/sdk 0x123...abc mainnet
+
+# Generate types with custom output directory
+npx @surflux/sdk 0x123...abc testnet -o ./my-types
+
+# Generate types using a custom RPC URL
+npx @surflux/sdk 0x123...abc https://fullnode.mainnet.sui.io:443 -o ./sui-events
+```
+
+**Output Structure:**
+
+The generator creates the following files in `{outputDir}/{packageId}/`:
+
+- `types.ts` (or `types.js`) - Contains all event type definitions, `EventName` enum, `EventTypes` constant, and `EventTypeMap` type
+- `package-info.json` - Metadata about the generated package (package ID, network, language, generation timestamp)
+
+**Language Selection:**
+
+When you run the generator, you'll be prompted to choose between:
+1. **TypeScript** - Generates `.ts` files with full TypeScript interfaces and types
+2. **JavaScript** - Generates `.js` files with JSDoc type annotations
+
+**Using Generated Types:**
 
 ```typescript
-import { TransferEvent, MintEvent } from './sui-events';
+// Import generated types
+import { 
+  TransferEvent, 
+  MintEvent, 
+  EventName, 
+  EventTypes 
+} from './sui-events/0x123...abc';
 
+// Use with createTypedHandlers for type-safe event handling
 client.createTypedHandlers({
   Transfer: (event: TransferEvent) => {
-    // event is now fully typed
+    // event is now fully typed with all fields
+    console.log('Transfer:', event.from, event.to, event.amount);
   },
   Mint: (event: MintEvent) => {
     // event is now fully typed
+    console.log('Mint:', event.token_id, event.recipient);
   }
+});
+
+// Use EventName enum for type-safe event names
+client.onEvent(EventName.Transfer, (event: TransferEvent) => {
+  console.log('Transfer event:', event);
+});
+
+// Use EventTypes constant for full event type strings
+client.onEvent(EventTypes.Transfer, (event: TransferEvent) => {
+  console.log('Transfer event:', event);
 });
 ```
 
-For more detailed examples, see the [examples directory](./examples/).
+**Generated Type Structure:**
+
+The generator creates:
+- **Event Interfaces** - TypeScript interfaces (or JSDoc types) for each event struct found in the package
+- **EventName Enum** - Enum of event names for type-safe references (e.g., `EventName.Transfer`)
+- **EventTypes Constant** - Mapping of event names to full event type strings (e.g., `EventTypes.Transfer = '0x123::module::Transfer'`)
+- **EventTypeMap Type** - Type mapping for use with typed handlers
+
+**Type Naming:**
+
+- Event struct names are converted to PascalCase (e.g., `auction_created` → `AuctionCreated`)
+- If multiple modules have events with the same name, the module name is appended (e.g., `Transfer` from `market` module → `TransferMarket`)
+- External types from other packages are defined as `unknown` with comments indicating their source
 
 ---
 
