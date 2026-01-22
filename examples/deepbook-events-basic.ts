@@ -116,7 +116,7 @@ async function main() {
 
     // Keep the process running
     console.log('Press Ctrl+C to stop...\n');
-    await new Promise(() => {}); // Keep running indefinitely
+    await new Promise(() => { }); // Keep running indefinitely
   } catch (error) {
     console.error('Error:', error instanceof Error ? error.message : String(error));
     process.exit(1);

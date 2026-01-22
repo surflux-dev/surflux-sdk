@@ -968,9 +968,9 @@ Comprehensive examples are available in the [examples directory](./examples/):
 
 - [Deepbook Basic](./examples/deepbook-basic.ts)
 - [Package Events Basic](./examples/package-events-basic.ts)
-- [Deepbook Events Live Trades](./examples/deepbook-events-live-trades.ts)
-- [Deepbook Events Basic](./examples/deepbook-events-basic.ts)
 - [Package Events Typed](./examples/package-events-typed.ts)
+- [Deepbook Events Basic](./examples/deepbook-events-basic.ts)
+- [Deepbook Events Live Trades](./examples/deepbook-events-live-trades.ts)
 
 ---
 
