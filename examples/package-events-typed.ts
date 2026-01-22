@@ -3,9 +3,17 @@
  *
  * This example demonstrates using typed handlers with the SurfluxPackageEventsClient
  * to handle multiple event types in a type-safe way.
+ * 
+ * HOW TO RUN:
+ * 1. Make sure you've built the project: npm run build
+ * 2. Configure your stream key in examples/keys.ts (see keys.ts for instructions)
+ * 3. Run with: npx tsx examples/package-events-typed.ts
+ *    Or: npx ts-node examples/package-events-typed.ts
+ * 4. Press Ctrl+C to stop the stream
  */
 
-import { SurfluxPackageEventsClient, SurfluxNetwork } from '../src/index';
+import { SurfluxPackageEventsClient } from '../dist';
+import { SURFLUX_STREAM_KEY, SURFLUX_NETWORK } from './keys';
 
 // Define your event types
 interface TransferEvent {
@@ -25,12 +33,12 @@ interface BurnEvent {
 }
 
 async function main() {
-  const streamKey = process.env.SURFLUX_STREAM_KEY || 'your-stream-key-here';
+  const streamKey = SURFLUX_STREAM_KEY;
 
   // Initialize the client
   const client = new SurfluxPackageEventsClient({
     streamKey,
-    network: SurfluxNetwork.TESTNET,
+    network: SURFLUX_NETWORK,
   });
 
   try {

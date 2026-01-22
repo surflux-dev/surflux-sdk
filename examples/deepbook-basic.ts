@@ -3,17 +3,24 @@
  * 
  * This example demonstrates basic usage of the SurfluxDeepbookClient
  * to query trading pools, trades, order books, and OHLCV data.
+ * 
+ * HOW TO RUN:
+ * 1. Make sure you've built the project: npm run build
+ * 2. Configure your API key in examples/keys.ts (see keys.ts for instructions)
+ * 3. Run with: npx tsx examples/deepbook-basic.ts
+ *    Or: npx ts-node examples/deepbook-basic.ts
  */
 
-import { SurfluxIndexerClient, SurfluxNetwork } from '../dist';
+import { SurfluxIndexerClient } from '../dist';
+import { SURFLUX_API_KEY, SURFLUX_NETWORK } from './keys';
 
 async function main() {
   // Initialize the client
   console.log('1. Initializing SurfluxIndexerClient...');
 
   const surfluxClient = new SurfluxIndexerClient({
-    apiKey: process.env.SURFLUX_API_KEY || 'your-api-key-here',
-    network: SurfluxNetwork.MAINNET,
+    apiKey: SURFLUX_API_KEY,
+    network: SURFLUX_NETWORK,
   });
 
   console.log('Surflux Deepbook Client Initialized\n');

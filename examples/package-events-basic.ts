@@ -3,17 +3,25 @@
  *
  * This example demonstrates basic usage of the SurfluxPackageEventsClient
  * to receive real-time package events from Sui blockchain.
+ * 
+ * HOW TO RUN:
+ * 1. Make sure you've built the project: npm run build
+ * 2. Configure your stream key in examples/keys.ts (see keys.ts for instructions)
+ * 3. Run with: npx tsx examples/package-events-basic.ts
+ *    Or: npx ts-node examples/package-events-basic.ts
+ * 4. Press Ctrl+C to stop the stream
  */
 
-import { SurfluxPackageEventsClient, SurfluxNetwork } from '../src/index';
+import { SurfluxPackageEventsClient } from '../dist';
+import { SURFLUX_STREAM_KEY, SURFLUX_NETWORK } from './keys';
 
 async function main() {
-  const streamKey = process.env.SURFLUX_STREAM_KEY || 'your-stream-key-here';
+  const streamKey = SURFLUX_STREAM_KEY;
 
   // Initialize the client
   const client = new SurfluxPackageEventsClient({
     streamKey,
-    network: SurfluxNetwork.TESTNET,
+    network: SURFLUX_NETWORK,
   });
 
   try {
