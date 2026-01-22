@@ -1,6 +1,6 @@
 {
   "name": "@surflux/sdk",
-  "version": "0.2.0",
+  "version": "0.1.0-beta.1",
   "description": "Ship faster on Sui: consume real-time Surflux streams and indexed data with a simple TypeScript SDK.",
   "publishConfig": {
     "access": "restricted"
@@ -15,7 +15,7 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "surflux-sdk": "./dist/cli/index.js"
+    "@surflux/sdk": "./dist/cli/index.js"
   },
   "scripts": {
     "build": "tsc",
