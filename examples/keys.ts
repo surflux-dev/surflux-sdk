@@ -51,7 +51,7 @@ export const SURFLUX_NETWORK = SurfluxNetwork.TESTNET;
 //
 // API Key Usage:
 //   - Used with SurfluxIndexerClient for REST API calls
-//   - Examples: deepbook-basic.ts, nft-basic.ts
+//   - Examples: deepbook-basic.ts
 //
 // Stream Key Usage:
 //   - Used with SurfluxPackageEventsClient for package event streaming
