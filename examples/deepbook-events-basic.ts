@@ -31,8 +31,8 @@ async function main() {
   // Initialize the client for all updates
   const client = new SurfluxDeepbookEventsClient({
     streamKey,
-    poolName: 'SUI-USDC',
-    streamType: DeepbookStreamType.ALL_UPDATES,
+    poolName: 'DEEP_SUI',
+    streamType: DeepbookStreamType.LIVE_TRADES,
     network: SURFLUX_NETWORK,
   });
 
