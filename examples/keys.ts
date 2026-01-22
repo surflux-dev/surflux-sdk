@@ -3,7 +3,6 @@
  * 
  * This file contains your Surflux API keys. Follow the instructions below to obtain your keys.
  * 
- * IMPORTANT: Never commit this file to version control! It's already in .gitignore.
  */
 
 // ============================================================================
@@ -37,7 +36,7 @@
 // ============================================================================
 
 export const SURFLUX_API_KEY = 'your-api-key-here';
-export const SURFLUX_STREAM_KEY = 'f84f4621-0cf4-4d5b-9a27-75908ad2cc86';
+export const SURFLUX_STREAM_KEY = 'your-stream-key-here';
 
 // Network configuration
 // Options: SurfluxNetwork.TESTNET, SurfluxNetwork.MAINNET, SurfluxNetwork.CUSTOM
