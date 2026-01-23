@@ -6,8 +6,9 @@ on:
       - "v*.*.*"
 
 permissions:
-  id-token: write # Required for OIDC
   contents: read
+  id-token: write # for npm Trusted Publishing (OIDC)
+  packages: write # for GitHub Packages publish
 
 jobs:
   release:
@@ -48,9 +49,7 @@ jobs:
           fi
 
       - name: Publish to npm
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
