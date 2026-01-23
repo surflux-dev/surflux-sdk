@@ -7,24 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Initial production-ready release
-
-## [0.2.0] - 2026-01-20
+## [0.2.0] - 2026-01-23
 
 ### Added
-- Package event streaming with Server-Sent Events (SSE)
-- Deepbook event streaming for live trades and order book updates
 - NFT API client for querying collections, tokens, and holders
 - Deepbook API client for trading pools, order books, trades, and OHLCV data
-- Automatic TypeScript type generation from Sui package events
-- Full TypeScript support with IntelliSense
-- Browser and Node.js compatibility
-- Comprehensive examples and documentation
+- Package Events client for real-time Sui package event streaming
+- Deepbook Events client for live trades and order book updates
+- CLI tool for generating TypeScript types from package events
+- Comprehensive unit tests with near 100% branch coverage
+- Examples demonstrating SDK usage
+- Improved error handling with custom error classes
+- TypeScript documentation (JSDoc) for all public APIs
 
 ### Changed
-- Improved error handling with detailed error messages
-- Enhanced type safety across all clients
+- Refactored client architecture into modular design
+- Improved type safety across all clients
+- Enhanced event source implementation for better cross-platform support
+- Changed package access from restricted to public
+
+### Fixed
+- Event source connection issues in Node.js environments
+- Event deduplication logic for timestamp-based filtering
+- Wildcard pattern matching for event subscriptions
 
 ## [0.1.0] - 2025-12-09
 

@@ -1,318 +1,140 @@
 # Surflux SDK Examples
 
-> ⚠️ **Work in Progress**: These examples are currently under development and may be incomplete or subject to change. Use them as a reference, but please verify the API documentation for the most up-to-date information.
+This directory contains practical examples demonstrating how to use the Surflux SDK. Each example file includes "HOW TO RUN" instructions at the top.
 
-This directory contains example code demonstrating how to use the Surflux SDK.
+## Quick Start
 
-## Deepbook Examples
+1. **Install dependencies and build:**
+   ```bash
+   npm install
+   npm run build
+   ```
 
-### Basic Usage (`deepbook-basic.ts`)
+2. **Configure your keys:**
+   - Open `examples/keys.ts`
+   - Follow the instructions to get your keys from https://dashboard.surflux.dev
+   - Replace the placeholder values with your actual API key and stream key
+   - Optionally change the network (default is TESTNET)
 
-Demonstrates basic usage of the `SurfluxDeepbookClient`:
-- Fetching all available pools
-- Getting recent trades
-- Retrieving order book data
-- Fetching OHLCV candlestick data
+3. **Run an example:**
+   ```bash
+   npx tsx examples/deepbook-basic.ts
+   ```
 
-**Run:**
-```bash
-SURFLUX_API_KEY=your-api-key npx ts-node examples/deepbook-basic.ts
-```
+## Example Files
 
-Or with tsx:
-```bash
-SURFLUX_API_KEY=your-api-key npx tsx examples/deepbook-basic.ts
-```
+| File | Description | Key Type |
+|------|-------------|----------|
+| `deepbook-basic.ts` | REST API: pools, trades, order books, OHLCV | API Key |
+| `deepbook-events-basic.ts` | Event streaming: all Deepbook events | Stream Key |
+| `deepbook-events-live-trades.ts` | Event streaming: live trades only | Stream Key |
+| `package-events-basic.ts` | Package events: basic subscription patterns | Stream Key |
+| `package-events-typed.ts` | Package events: type-safe handlers | Stream Key |
 
-### Trades Analysis (`deepbook-trades-analysis.ts`)
+## Configuration
 
-Shows how to analyze trades data:
-- Filtering trades by time range
-- Calculating price statistics
-- Grouping trades by price ranges
-- Computing volume distribution
+All examples use the centralized configuration in `examples/keys.ts`:
 
-**Run:**
-```bash
-SURFLUX_API_KEY=your-api-key npx ts-node examples/deepbook-trades-analysis.ts
-```
+- **API Key** - Used for REST API clients (`SurfluxIndexerClient`)
+- **Stream Key** - Used for event streaming clients (`SurfluxPackageEventsClient`, `SurfluxDeepbookEventsClient`)
+- **Network** - Default is `TESTNET`, change to `MAINNET` for production
 
-Or with tsx:
-```bash
-SURFLUX_API_KEY=your-api-key npx tsx examples/deepbook-trades-analysis.ts
-```
-
-### OHLCV Chart Data (`deepbook-ohlcv-chart.ts`)
-
-Demonstrates fetching OHLCV data for charting:
-- Fetching candles for different timeframes
-- Displaying candle data
-- Calculating price changes
-- Preparing data for visualization
-
-**Run:**
-```bash
-SURFLUX_API_KEY=your-api-key npx ts-node examples/deepbook-ohlcv-chart.ts
-```
-
-Or with tsx:
-```bash
-SURFLUX_API_KEY=your-api-key npx tsx examples/deepbook-ohlcv-chart.ts
-```
-
-### Order Book Analysis (`deepbook-orderbook-analysis.ts`)
-
-Shows how to analyze order book depth:
-- Calculating spreads
-- Assessing market liquidity
-- Analyzing bid/ask depth
-- Computing depth at different price levels
-
-**Run:**
-```bash
-SURFLUX_API_KEY=your-api-key npx ts-node examples/deepbook-orderbook-analysis.ts
-```
-
-Or with tsx:
-```bash
-SURFLUX_API_KEY=your-api-key npx tsx examples/deepbook-orderbook-analysis.ts
-```
-
-## Deepbook Events Examples
-
-### Basic Usage (`deepbook-events-basic.ts`)
-
-Demonstrates basic usage of the `SurfluxDeepbookEventsClient`:
-- Connecting to Deepbook event stream
-- Subscribing to live trades
-- Subscribing to order book updates
-- Subscribing to all order update types (placed, canceled, modified, expired)
-- Using `onAll` to receive all events
-
-**Run:**
-```bash
-SURFLUX_STREAM_KEY=your-stream-key npx ts-node examples/deepbook-events-basic.ts
-```
-
-Or with tsx:
-```bash
-SURFLUX_STREAM_KEY=your-stream-key npx tsx examples/deepbook-events-basic.ts
-```
-
-### Live Trades (`deepbook-events-live-trades.ts`)
-
-Shows how to use the `LIVE_TRADES` stream type:
-- Creating a client for live trades only
-- Tracking trade statistics
-- Using `waitFor` to wait for the first trade
-- Monitoring order book depth updates
-
-**Run:**
-```bash
-SURFLUX_STREAM_KEY=your-stream-key npx ts-node examples/deepbook-events-live-trades.ts
-```
-
-Or with tsx:
-```bash
-SURFLUX_STREAM_KEY=your-stream-key npx tsx examples/deepbook-events-live-trades.ts
-```
-
-## Package Events Examples
-
-### Basic Usage (`package-events-basic.ts`)
-
-Demonstrates basic usage of the `SurfluxPackageEventsClient`:
-- Connecting to Surflux event stream
-- Subscribing to specific event types
-- Using pattern matching
-- Waiting for events with timeout
-- Subscribing to all events
-
-**Run:**
-```bash
-SURFLUX_STREAM_KEY=your-stream-key npx ts-node examples/package-events-basic.ts
-```
-
-Or with tsx:
-```bash
-SURFLUX_STREAM_KEY=your-stream-key npx tsx examples/package-events-basic.ts
-```
-
-### Typed Handlers (`package-events-typed.ts`)
-
-Shows how to use typed handlers for type-safe event handling:
-- Using `createTypedHandlers` for multiple event types
-- Type-safe event handling
-- Handling Transfer, Mint, and Burn events
-
-**Run:**
-```bash
-SURFLUX_STREAM_KEY=your-stream-key npx ts-node examples/package-events-typed.ts
-```
-
-Or with tsx:
-```bash
-SURFLUX_STREAM_KEY=your-stream-key npx tsx examples/package-events-typed.ts
-```
-
-## NFT Examples
-
-### Basic Usage (`nft-basic.ts`)
-
-Demonstrates basic usage of the `SurfluxNFTClient`:
-- Fetching an NFT by object ID
-- Getting NFTs for an owner
-- Retrieving NFTs in a collection
-- Fetching collection holders
-
-**Run:**
-```bash
-SURFLUX_API_KEY=your-api-key npx ts-node examples/nft-basic.ts
-```
-
-Or with tsx:
-```bash
-SURFLUX_API_KEY=your-api-key npx tsx examples/nft-basic.ts
-```
-
-### Collection Explorer (`nft-collection-explorer.ts`)
-
-Shows how to explore NFT collections:
-- Fetching all NFTs in a collection with pagination
-- Analyzing collection statistics
-- Viewing collection holders
-- Filtering NFTs by fields
-
-**Run:**
-```bash
-SURFLUX_API_KEY=your-api-key npx ts-node examples/nft-collection-explorer.ts
-```
-
-Or with tsx:
-```bash
-SURFLUX_API_KEY=your-api-key npx tsx examples/nft-collection-explorer.ts
-```
-
-### Owner Portfolio (`nft-owner-portfolio.ts`)
-
-Demonstrates viewing an owner's NFT portfolio:
-- Fetching all NFTs owned by an address
-- Grouping NFTs by collection
-- Analyzing portfolio composition
-- Filtering by collection types
-
-**Run:**
-```bash
-SURFLUX_API_KEY=your-api-key npx ts-node examples/nft-owner-portfolio.ts
-```
-
-Or with tsx:
-```bash
-SURFLUX_API_KEY=your-api-key npx tsx examples/nft-owner-portfolio.ts
-```
-
-## Prerequisites
-
-- Node.js 18+
-- TypeScript
-- A valid Surflux API key
-
-## Setup
-
-1. Install dependencies:
-```bash
-npm install
-```
-
-2. Set your API key and stream key (choose one method):
-```bash
-# Option 1: Export as environment variables
-export SURFLUX_API_KEY=your-api-key-here
-export SURFLUX_STREAM_KEY=your-stream-key-here
-
-# Option 2: Pass inline with the command
-SURFLUX_API_KEY=your-api-key-here SURFLUX_STREAM_KEY=your-stream-key-here npx ts-node examples/deepbook-basic.ts
-```
-
-**Note:** 
-- `SURFLUX_API_KEY` is used for REST API clients (Deepbook, NFT)
-- `SURFLUX_STREAM_KEY` is used for event streaming clients (Deepbook Events, Package Events)
-
-3. Install TypeScript runner (if not already installed):
-```bash
-# Using ts-node
-npm install -g ts-node
-
-# Or using tsx (faster, recommended)
-npm install -g tsx
-```
+The `keys.ts` file includes detailed instructions on how to obtain your keys from the Surflux dashboard.
 
 ## Running Examples
+
+### Using tsx (Recommended)
+
+```bash
+npx tsx examples/deepbook-basic.ts
+npx tsx examples/deepbook-events-basic.ts
+npx tsx examples/package-events-basic.ts
+```
 
 ### Using ts-node
 
 ```bash
-# Set API key and stream key once
-export SURFLUX_API_KEY=your-api-key-here
-export SURFLUX_STREAM_KEY=your-stream-key-here
-
-# Run REST API examples
 npx ts-node examples/deepbook-basic.ts
-npx ts-node examples/deepbook-trades-analysis.ts
-npx ts-node examples/deepbook-ohlcv-chart.ts
-npx ts-node examples/deepbook-orderbook-analysis.ts
-npx ts-node examples/nft-basic.ts
-npx ts-node examples/nft-collection-explorer.ts
-npx ts-node examples/nft-owner-portfolio.ts
-
-# Run event streaming examples
 npx ts-node examples/deepbook-events-basic.ts
-npx ts-node examples/deepbook-events-live-trades.ts
 npx ts-node examples/package-events-basic.ts
-npx ts-node examples/package-events-typed.ts
 ```
 
-### Using tsx (Recommended - Faster)
+### Using Compiled JavaScript
 
-```bash
-# Set API key and stream key once
-export SURFLUX_API_KEY=your-api-key-here
-export SURFLUX_STREAM_KEY=your-stream-key-here
-
-# Run REST API examples
-npx tsx examples/deepbook-basic.ts
-npx tsx examples/deepbook-trades-analysis.ts
-npx tsx examples/deepbook-ohlcv-chart.ts
-npx tsx examples/deepbook-orderbook-analysis.ts
-npx tsx examples/nft-basic.ts
-npx tsx examples/nft-collection-explorer.ts
-npx tsx examples/nft-owner-portfolio.ts
-
-# Run event streaming examples
-npx tsx examples/deepbook-events-basic.ts
-npx tsx examples/deepbook-events-live-trades.ts
-npx tsx examples/package-events-basic.ts
-npx tsx examples/package-events-typed.ts
-```
-
-### Using Node.js with compiled JavaScript
-
-First, compile TypeScript:
 ```bash
 npm run build
+node dist/examples/deepbook-basic.js
 ```
 
-Then run the compiled JavaScript:
-```bash
-SURFLUX_API_KEY=your-api-key node dist/examples/deepbook-basic.js
+## Key Concepts
+
+### Deepbook API
+- Pool names use underscore format: `SUI_USDC`
+- Prices and quantities are raw numbers (apply decimals for display)
+- Timestamps are in Unix seconds
+
+### Deepbook Event Streaming
+- Pool names use hyphen format: `SUI-USDC`
+- `on()` handlers receive event data directly
+- `onAll()` handlers receive full event object with metadata
+- Two stream types: `ALL_UPDATES` (6 events) or `LIVE_TRADES` (2 events)
+
+### Package Event Streaming
+- Subscribe by full type (`0x123::module::Event`) or name only (`Event`)
+- Pattern matching with wildcards: `0x123::module::*`
+- `on()` handlers receive event contents
+- `onAll()` handlers receive full event object
+- Generate types with: `npx @surflux/sdk <packageId> <network> -o ./sui-events`
+
+## Advanced Patterns
+
+### Custom Cache Adapter
+
+Use a persistent cache to prevent duplicate events after reconnection:
+
+```typescript
+import { SurfluxPackageEventsClient, SurfluxNetwork } from '../dist';
+import { SURFLUX_STREAM_KEY, SURFLUX_NETWORK } from './keys';
+
+const cacheAdapter = {
+  get: async (key: string) => {
+    // Your cache get logic
+    return await yourCache.get(key);
+  },
+  set: async (key: string, value: string) => {
+    // Your cache set logic
+    await yourCache.set(key, value);
+  },
+};
+
+const client = new SurfluxPackageEventsClient({
+  streamKey: SURFLUX_STREAM_KEY,
+  network: SURFLUX_NETWORK,
+  cache: cacheAdapter,
+});
+```
+
+### Resuming from Specific Event
+
+For Deepbook events, resume from a specific event ID:
+
+```typescript
+await client.connect({
+  lastId: '1755091934020-0', // Format: timestamp-sequence
+});
+
+// For ALL_UPDATES, filter by event type
+await client.connect({
+  lastId: '1755091934020-0',
+  type: 'deepbook_live_trades',
+});
 ```
 
 ## Notes
 
-- All examples use the testnet network by default
-- Replace `'your-api-key-here'` with your actual API key or set the `SURFLUX_API_KEY` environment variable
-- Replace `'your-stream-key-here'` with your actual stream key or set the `SURFLUX_STREAM_KEY` environment variable
-- Examples include error handling and will exit with an error code if something goes wrong
-- Examples use relative imports (`../src/index`) for development. When using the published package, import from `@surflux/sdk` instead
-- For production use, compile the examples first using `npm run build` and run the compiled JavaScript files
-- Event streaming examples will run indefinitely until stopped with Ctrl+C
+- All examples use TESTNET by default (configured in `keys.ts`)
+- Event streaming examples run until stopped with Ctrl+C
+- The `keys.ts` file is in `.gitignore` to prevent committing your keys
+- Each example file has detailed "HOW TO RUN" instructions at the top
+
+For more information, see the [main README](../README.md).

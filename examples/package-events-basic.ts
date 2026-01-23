@@ -3,33 +3,31 @@
  *
  * This example demonstrates basic usage of the SurfluxPackageEventsClient
  * to receive real-time package events from Sui blockchain.
+ * 
+ * HOW TO RUN:
+ * 1. Make sure you've built the project: npm run build
+ * 2. Configure your stream key in examples/keys.ts (see keys.ts for instructions)
+ * 3. Run with: npx tsx examples/package-events-basic.ts
+ *    Or: npx ts-node examples/package-events-basic.ts
+ * 4. Press Ctrl+C to stop the stream
  */
 
-import { SurfluxPackageEventsClient, SurfluxNetwork } from '../src/index';
+import { SurfluxPackageEventsClient } from '../dist';
+import { SURFLUX_STREAM_KEY, SURFLUX_NETWORK } from './keys';
 
 async function main() {
-  const streamKey = process.env.SURFLUX_STREAM_KEY || 'your-stream-key-here';
+  const streamKey = SURFLUX_STREAM_KEY;
 
   // Initialize the client
   const client = new SurfluxPackageEventsClient({
     streamKey,
-    network: SurfluxNetwork.TESTNET,
+    network: SURFLUX_NETWORK,
   });
 
   try {
     console.log('Connecting to Surflux event stream...');
     await client.connect();
     console.log('Connected! Listening for events...\n');
-
-    // Subscribe to a specific event type by full name
-    client.on('0x123::my_module::MyEvent', (event) => {
-      console.log('📦 MyEvent received:', JSON.stringify(event, null, 2));
-    });
-
-    // Subscribe to an event by its name only (last part after ::)
-    client.on('MyEvent', (event) => {
-      console.log('📦 Event by name:', JSON.stringify(event, null, 2));
-    });
 
     // Subscribe to all events
     client.onAll((event) => {
@@ -42,27 +40,9 @@ async function main() {
       }
     });
 
-    // Use pattern matching to subscribe to all events from a module
-    client.on('0x123::my_module::*', (event) => {
-      console.log('🎯 Pattern match:', JSON.stringify(event, null, 2));
-    });
-
-    // Wait for a specific event with timeout
-    try {
-      console.log('Waiting for MyEvent (timeout: 30s)...');
-      const event = await client.waitFor('MyEvent', 30000);
-      console.log('\n✅ Event received!', JSON.stringify(event, null, 2));
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('Timeout')) {
-        console.log('\n⏰ No events received within timeout period');
-      } else {
-        throw error;
-      }
-    }
-
     // Keep the process running
     console.log('\nPress Ctrl+C to stop...\n');
-    await new Promise(() => {}); // Keep running indefinitely
+    await new Promise(() => { }); // Keep running indefinitely
   } catch (error) {
     console.error('Error:', error instanceof Error ? error.message : String(error));
     process.exit(1);
