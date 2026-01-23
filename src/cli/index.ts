@@ -2,7 +2,7 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { generateTypes } from './generator';
+import { generateTypes } from './generator.js';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as readline from 'readline';
@@ -73,7 +73,7 @@ if (process.argv.length === 2) {
 program
   .name('@surflux/sdk')
   .description('Generate TypeScript types for Sui package events')
-  .version('1.0.0')
+  .version('0.2.1')
   .argument('<packageId>', 'Sui package ID')
   .argument('<network>', 'Network (mainnet, testnet, devnet, or custom RPC URL)')
   .option('-o, --output <path>', 'Output directory for generated types', './sui-events')
