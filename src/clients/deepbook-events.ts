@@ -108,7 +108,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
    *
    * @param config - Configuration object
    * @param config.streamKey - Your Surflux stream key
-   * @param config.poolName - The name of the trading pool (e.g., 'SUI-USDC')
+   * @param config.poolName - The name of the trading pool (e.g., 'SUI_USDC')
    * @param config.streamType - The type of stream to connect to (ALL_UPDATES or LIVE_TRADES)
    * @param config.network - Network to use ('mainnet' or 'testnet', default: 'testnet')
    *
@@ -119,7 +119,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
    * // For all updates
    * const allUpdatesClient = new SurfluxDeepbookEventsClient({
    *   streamKey: 'your-stream-key',
-   *   poolName: 'SUI-USDC',
+   *   poolName: 'SUI_USDC',
    *   streamType: DeepbookStreamType.ALL_UPDATES,
    *   network: 'testnet'
    * });
@@ -127,7 +127,7 @@ export class SurfluxDeepbookEventsClient<T extends DeepbookStreamType = Deepbook
    * // For live trades only
    * const liveTradesClient = new SurfluxDeepbookEventsClient({
    *   streamKey: 'your-stream-key',
-   *   poolName: 'SUI-USDC',
+   *   poolName: 'SUI_USDC',
    *   streamType: DeepbookStreamType.LIVE_TRADES,
    *   network: 'testnet'
    * });

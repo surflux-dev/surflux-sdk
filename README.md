@@ -592,7 +592,7 @@ import {
 
 const client = new SurfluxDeepbookEventsClient({
   streamKey: 'your-stream-key',
-  poolName: 'SUI-USDC',
+  poolName: 'SUI_USDC',
   streamType: DeepbookStreamType.ALL_UPDATES,
   network: SurfluxNetwork.TESTNET
 });
@@ -645,7 +645,7 @@ Receive only live trades and order book depth updates:
 ```typescript
 const client = new SurfluxDeepbookEventsClient({
   streamKey: 'your-stream-key',
-  poolName: 'SUI-USDC',
+  poolName: 'SUI_USDC',
   streamType: DeepbookStreamType.LIVE_TRADES,
   network: SurfluxNetwork.TESTNET
 });
@@ -689,7 +689,7 @@ import {
 // Type-safe event handling with built-in types
 const client = new SurfluxDeepbookEventsClient({
   streamKey: 'your-stream-key',
-  poolName: 'SUI-USDC',
+  poolName: 'SUI_USDC',
   streamType: DeepbookStreamType.ALL_UPDATES,
   network: SurfluxNetwork.TESTNET
 });
@@ -812,7 +812,7 @@ const cacheAdapter = {
 
 const client = new SurfluxDeepbookEventsClient({
   streamKey: 'your-stream-key',
-  poolName: 'SUI-USDC',
+  poolName: 'SUI_USDC',
   streamType: DeepbookStreamType.ALL_UPDATES,
   network: SurfluxNetwork.TESTNET,
   cache: cacheAdapter // Optional: if not provided, uses in-memory cache
@@ -827,7 +827,7 @@ const client = new SurfluxDeepbookEventsClient({
 // Process only events after a specific timestamp (in milliseconds)
 const client = new SurfluxDeepbookEventsClient({
   streamKey: 'your-stream-key',
-  poolName: 'SUI-USDC',
+  poolName: 'SUI_USDC',
   streamType: DeepbookStreamType.ALL_UPDATES,
   network: SurfluxNetwork.TESTNET,
   fromTimestampMs: Date.now() - 3600000 // Last hour only
@@ -874,7 +874,7 @@ export class DeepbookEventsService implements OnModuleDestroy {
   async initialize() {
     this.client = new SurfluxDeepbookEventsClient({
       streamKey: process.env.SURFLUX_STREAM_KEY!,
-      poolName: 'SUI-USDC',
+      poolName: 'SUI_USDC',
       streamType: DeepbookStreamType.ALL_UPDATES,
       network: SurfluxNetwork.TESTNET,
       cache: {

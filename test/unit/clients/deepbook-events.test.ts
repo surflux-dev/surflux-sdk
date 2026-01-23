@@ -69,7 +69,7 @@ const mockMatchesPattern = matchesPattern as jest.MockedFunction<typeof matchesP
 describe('SurfluxDeepbookEventsClient', () => {
   const validStreamKey = 'test-stream-key-12345';
   const testBaseUrl = 'https://testnet-flux.surflux.dev';
-  const testPoolName = 'SUI-USDC';
+  const testPoolName = 'SUI_USDC';
 
   let mockCreateEventSourceFn: jest.Mock;
 

@@ -109,7 +109,7 @@ describe('DeepbookClient', () => {
   //     const mockPools: PoolInfo[] = [
   //       {
   //         pool_id: '0x123',
-  //         pool_name: 'SUI-USDC',
+  //         pool_name: 'SUI_USDC',
   //         base_asset_id: '0xbase',
   //         base_asset_decimals: 9,
   //         base_asset_symbol: 'SUI',
@@ -202,7 +202,7 @@ describe('DeepbookClient', () => {
   //     ];
 
   //     const params: GetTradesParams = {
-  //       pool_name: 'SUI-USDC',
+  //       pool_name: 'SUI_USDC',
   //       from: 1699999999,
   //       to: 1700000000,
   //       limit: 100,
@@ -215,7 +215,7 @@ describe('DeepbookClient', () => {
   //     expect(result).toEqual(mockTrades);
   //     expect(mockHttpRequest).toHaveBeenCalledTimes(1);
   //     expect(mockHttpRequest).toHaveBeenCalledWith(
-  //       `${testBaseUrl}/deepbook/SUI-USDC/trades`,
+  //       `${testBaseUrl}/deepbook/SUI_USDC/trades`,
   //       {
   //         apiKey: validApiKey,
   //         params: {
@@ -230,7 +230,7 @@ describe('DeepbookClient', () => {
   //   it('should return trades with only pool_name', async () => {
   //     const mockTrades: Trade[] = [];
   //     const params: GetTradesParams = {
-  //       pool_name: 'SUI-USDC',
+  //       pool_name: 'SUI_USDC',
   //     };
 
   //     mockHttpRequest.mockResolvedValue(mockTrades);
@@ -240,7 +240,7 @@ describe('DeepbookClient', () => {
   //     expect(result).toEqual(mockTrades);
   //     expect(mockHttpRequest).toHaveBeenCalledTimes(1);
   //     expect(mockHttpRequest).toHaveBeenCalledWith(
-  //       `${testBaseUrl}/deepbook/SUI-USDC/trades`,
+  //       `${testBaseUrl}/deepbook/SUI_USDC/trades`,
   //       {
   //         apiKey: validApiKey,
   //         params: {},
@@ -251,7 +251,7 @@ describe('DeepbookClient', () => {
   //   it('should filter out undefined parameters', async () => {
   //     const mockTrades: Trade[] = [];
   //     const params: GetTradesParams = {
-  //       pool_name: 'SUI-USDC',
+  //       pool_name: 'SUI_USDC',
   //       from: undefined,
   //       to: undefined,
   //       limit: undefined,
@@ -262,7 +262,7 @@ describe('DeepbookClient', () => {
   //     await client.getTrades(params);
 
   //     expect(mockHttpRequest).toHaveBeenCalledWith(
-  //       `${testBaseUrl}/deepbook/SUI-USDC/trades`,
+  //       `${testBaseUrl}/deepbook/SUI_USDC/trades`,
   //       {
   //         apiKey: validApiKey,
   //         params: {},
@@ -283,7 +283,7 @@ describe('DeepbookClient', () => {
 
   //   it('should handle empty trades array', async () => {
   //     const params: GetTradesParams = {
-  //       pool_name: 'SUI-USDC',
+  //       pool_name: 'SUI_USDC',
   //       from: 1699999999,
   //       to: 1700000000,
   //     };
@@ -331,7 +331,7 @@ describe('DeepbookClient', () => {
   //     };
 
   //     const params: GetOrderBookDepthParams = {
-  //       pool_name: 'SUI-USDC',
+  //       pool_name: 'SUI_USDC',
   //       limit: 20,
   //     };
 
@@ -344,7 +344,7 @@ describe('DeepbookClient', () => {
   //     expect(result.asks).toHaveLength(2);
   //     expect(mockHttpRequest).toHaveBeenCalledTimes(1);
   //     expect(mockHttpRequest).toHaveBeenCalledWith(
-  //       `${testBaseUrl}/deepbook/SUI-USDC/order-book-depth`,
+  //       `${testBaseUrl}/deepbook/SUI_USDC/order-book-depth`,
   //       {
   //         apiKey: validApiKey,
   //         params: {
@@ -361,7 +361,7 @@ describe('DeepbookClient', () => {
   //     };
 
   //     const params: GetOrderBookDepthParams = {
-  //       pool_name: 'SUI-USDC',
+  //       pool_name: 'SUI_USDC',
   //     };
 
   //     mockHttpRequest.mockResolvedValue(mockOrderBook);
@@ -370,7 +370,7 @@ describe('DeepbookClient', () => {
 
   //     expect(result).toEqual(mockOrderBook);
   //     expect(mockHttpRequest).toHaveBeenCalledWith(
-  //       `${testBaseUrl}/deepbook/SUI-USDC/order-book-depth`,
+  //       `${testBaseUrl}/deepbook/SUI_USDC/order-book-depth`,
   //       {
   //         apiKey: validApiKey,
   //         params: {},
@@ -385,7 +385,7 @@ describe('DeepbookClient', () => {
   //     };
 
   //     const params: GetOrderBookDepthParams = {
-  //       pool_name: 'SUI-USDC',
+  //       pool_name: 'SUI_USDC',
   //     };
 
   //     mockHttpRequest.mockResolvedValue(mockOrderBook);
@@ -449,7 +449,7 @@ describe('DeepbookClient', () => {
   //       ];
 
   //       const params: GetOHLCVParams = {
-  //         pool_name: 'SUI-USDC',
+  //         pool_name: 'SUI_USDC',
   //         timeframe,
   //         from: 1699999999,
   //         to: 1700000000,
@@ -463,7 +463,7 @@ describe('DeepbookClient', () => {
   //       expect(result).toEqual(mockCandles);
   //       expect(mockHttpRequest).toHaveBeenCalledTimes(1);
   //       expect(mockHttpRequest).toHaveBeenCalledWith(
-  //         `${testBaseUrl}/deepbook/SUI-USDC/ohlcv/${timeframe}`,
+  //         `${testBaseUrl}/deepbook/SUI_USDC/ohlcv/${timeframe}`,
   //         {
   //           apiKey: validApiKey,
   //           params: {
@@ -479,7 +479,7 @@ describe('DeepbookClient', () => {
   //   it('should return OHLCV candles with only pool_name and timeframe', async () => {
   //     const mockCandles: OHLCVCandle[] = [];
   //     const params: GetOHLCVParams = {
-  //       pool_name: 'SUI-USDC',
+  //       pool_name: 'SUI_USDC',
   //       timeframe: '1h',
   //     };
 
@@ -489,7 +489,7 @@ describe('DeepbookClient', () => {
 
   //     expect(result).toEqual(mockCandles);
   //     expect(mockHttpRequest).toHaveBeenCalledWith(
-  //       `${testBaseUrl}/deepbook/SUI-USDC/ohlcv/1h`,
+  //       `${testBaseUrl}/deepbook/SUI_USDC/ohlcv/1h`,
   //       {
   //         apiKey: validApiKey,
   //         params: {},
@@ -500,7 +500,7 @@ describe('DeepbookClient', () => {
   //   it('should filter out undefined parameters', async () => {
   //     const mockCandles: OHLCVCandle[] = [];
   //     const params: GetOHLCVParams = {
-  //       pool_name: 'SUI-USDC',
+  //       pool_name: 'SUI_USDC',
   //       timeframe: '1h',
   //       from: undefined,
   //       to: undefined,
@@ -512,7 +512,7 @@ describe('DeepbookClient', () => {
   //     await client.getOHLCV(params);
 
   //     expect(mockHttpRequest).toHaveBeenCalledWith(
-  //       `${testBaseUrl}/deepbook/SUI-USDC/ohlcv/1h`,
+  //       `${testBaseUrl}/deepbook/SUI_USDC/ohlcv/1h`,
   //       {
   //         apiKey: validApiKey,
   //         params: {},
@@ -522,7 +522,7 @@ describe('DeepbookClient', () => {
 
   //   it('should handle empty candles array', async () => {
   //     const params: GetOHLCVParams = {
-  //       pool_name: 'SUI-USDC',
+  //       pool_name: 'SUI_USDC',
   //       timeframe: '1h',
   //     };
 
@@ -535,7 +535,7 @@ describe('DeepbookClient', () => {
   //   it('should handle API errors', async () => {
   //     const errorMessage = 'API error: 400 Invalid timeframe';
   //     const params: GetOHLCVParams = {
-  //       pool_name: 'SUI-USDC',
+  //       pool_name: 'SUI_USDC',
   //       timeframe: '1h',
   //     };
 
@@ -613,7 +613,7 @@ describe('DeepbookClient', () => {
   //     const timeoutError = new Error('Request timeout');
   //     mockHttpRequest.mockRejectedValue(timeoutError);
 
-  //     await expect(client.getTrades({ pool_name: 'SUI-USDC' })).rejects.toThrow(
+  //     await expect(client.getTrades({ pool_name: 'SUI_USDC' })).rejects.toThrow(
   //       'Request timeout'
   //     );
   //   });
@@ -630,7 +630,7 @@ describe('DeepbookClient', () => {
     //   it('should pass for valid pool names', async () => {
     //     mockHttpRequest.mockResolvedValue([]);
 
-    //     await expect(client.getTrades({ pool_name: 'SUI-USDC' })).resolves.toBeDefined();
+    //     await expect(client.getTrades({ pool_name: 'SUI_USDC' })).resolves.toBeDefined();
     //     await expect(client.getTrades({ pool_name: 'SUI-USDT' })).resolves.toBeDefined();
     //     await expect(client.getTrades({ pool_name: 'ETH-SUI' })).resolves.toBeDefined();
     //     await expect(client.getTrades({ pool_name: 'POOL_NAME_WITH_UNDERSCORES' })).resolves.toBeDefined();
@@ -656,16 +656,16 @@ describe('DeepbookClient', () => {
 
     //   it('should throw error for pool name without hyphen or underscore', async () => {
     //     await expect(client.getTrades({ pool_name: 'SUIUSDC' })).rejects.toThrow(
-    //       'Invalid pool name format: "SUIUSDC". Pool name should contain at least one hyphen or underscore (e.g., \'SUI-USDC\' or \'POOL_NAME\').'
+    //       'Invalid pool name format: "SUIUSDC". Pool name should contain at least one hyphen or underscore (e.g., \'SUI_USDC\' or \'POOL_NAME\').'
     //     );
     //   });
 
     //   it('should throw error for invalid characters', async () => {
-    //     await expect(client.getTrades({ pool_name: 'SUI-USDC!' })).rejects.toThrow(
-    //       'Invalid pool name format: "SUI-USDC!". Pool name can only contain alphanumeric characters, hyphens, and underscores.'
+    //     await expect(client.getTrades({ pool_name: 'SUI_USDC!' })).rejects.toThrow(
+    //       'Invalid pool name format: "SUI_USDC!". Pool name can only contain alphanumeric characters, hyphens, and underscores.'
     //     );
-    //     await expect(client.getTrades({ pool_name: 'SUI-USDC@' })).rejects.toThrow();
-    //     await expect(client.getTrades({ pool_name: 'SUI-USDC#' })).rejects.toThrow();
+    //     await expect(client.getTrades({ pool_name: 'SUI_USDC@' })).rejects.toThrow();
+    //     await expect(client.getTrades({ pool_name: 'SUI_USDC#' })).rejects.toThrow();
     //   });
 
     //   it('should throw error for non-string types', async () => {
@@ -681,49 +681,49 @@ describe('DeepbookClient', () => {
     //     mockHttpRequest.mockResolvedValue([]);
 
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '1m' })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: '1m' })
     //     ).resolves.toBeDefined();
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '5m' })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: '5m' })
     //     ).resolves.toBeDefined();
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '15m' })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: '15m' })
     //     ).resolves.toBeDefined();
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '1h' })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: '1h' })
     //     ).resolves.toBeDefined();
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '4h' })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: '4h' })
     //     ).resolves.toBeDefined();
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '1d' })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: '1d' })
     //     ).resolves.toBeDefined();
     //   });
 
     //   it('should throw error for undefined timeframe', async () => {
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: undefined as unknown as '1m' })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: undefined as unknown as '1m' })
     //     ).rejects.toThrow('Timeframe is required. Valid values: 1m, 5m, 15m, 1h, 4h, 1d.');
     //   });
 
     //   it('should throw error for invalid timeframe', async () => {
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '2h' as '1m' })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: '2h' as '1m' })
     //     ).rejects.toThrow('Invalid timeframe: "2h". Valid values: 1m, 5m, 15m, 1h, 4h, 1d.');
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '1w' as '1m' })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: '1w' as '1m' })
     //     ).rejects.toThrow();
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: 'invalid' as '1m' })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: 'invalid' as '1m' })
     //     ).rejects.toThrow();
     //   });
 
     //   it('should throw error for non-string types', async () => {
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: null as unknown as '1m' })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: null as unknown as '1m' })
     //     ).rejects.toThrow();
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: 123 as unknown as '1m' })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: 123 as unknown as '1m' })
     //     ).rejects.toThrow();
     //   });
     // });
@@ -733,10 +733,10 @@ describe('DeepbookClient', () => {
     //     mockHttpRequest.mockResolvedValue([]);
 
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', from: 1699999999, to: 1700000000 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', from: 1699999999, to: 1700000000 })
     //     ).resolves.toBeDefined();
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', from: 1000, to: 2000 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', from: 1000, to: 2000 })
     //     ).resolves.toBeDefined();
     //   });
 
@@ -744,7 +744,7 @@ describe('DeepbookClient', () => {
     //     mockHttpRequest.mockResolvedValue([]);
 
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', from: undefined, to: 1700000000 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', from: undefined, to: 1700000000 })
     //     ).resolves.toBeDefined();
     //   });
 
@@ -752,7 +752,7 @@ describe('DeepbookClient', () => {
     //     mockHttpRequest.mockResolvedValue([]);
 
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', from: 1699999999, to: undefined })
+    //       client.getTrades({ pool_name: 'SUI_USDC', from: 1699999999, to: undefined })
     //     ).resolves.toBeDefined();
     //   });
 
@@ -760,18 +760,18 @@ describe('DeepbookClient', () => {
     //     mockHttpRequest.mockResolvedValue([]);
 
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', from: undefined, to: undefined })
+    //       client.getTrades({ pool_name: 'SUI_USDC', from: undefined, to: undefined })
     //     ).resolves.toBeDefined();
     //   });
 
     //   it('should throw error when from >= to', async () => {
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', from: 1700000000, to: 1699999999 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', from: 1700000000, to: 1699999999 })
     //     ).rejects.toThrow(
     //       'Invalid timestamp range: "from" (1700000000) must be less than "to" (1699999999).'
     //     );
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', from: 1700000000, to: 1700000000 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', from: 1700000000, to: 1700000000 })
     //     ).rejects.toThrow(
     //       'Invalid timestamp range: "from" (1700000000) must be less than "to" (1700000000).'
     //     );
@@ -779,24 +779,24 @@ describe('DeepbookClient', () => {
 
     //   it('should throw error for negative timestamps', async () => {
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', from: -1, to: 1700000000 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', from: -1, to: 1700000000 })
     //     ).rejects.toThrow('Timestamps must be positive numbers.');
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', from: 1699999999, to: -1 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', from: 1699999999, to: -1 })
     //     ).rejects.toThrow('Timestamps must be positive numbers.');
     //   });
 
     //   it('should throw error for non-number types', async () => {
     //     await expect(
     //       client.getTrades({
-    //         pool_name: 'SUI-USDC',
+    //         pool_name: 'SUI_USDC',
     //         from: 'invalid' as unknown as number,
     //         to: 1700000000,
     //       })
     //     ).rejects.toThrow('Timestamps must be numbers (Unix timestamp in seconds).');
     //     await expect(
     //       client.getTrades({
-    //         pool_name: 'SUI-USDC',
+    //         pool_name: 'SUI_USDC',
     //         from: 1699999999,
     //         to: 'invalid' as unknown as number,
     //       })
@@ -807,7 +807,7 @@ describe('DeepbookClient', () => {
     //     const futureTimestamp = Math.floor(Date.now() / 1000) + 86401; // 24 hours + 1 second
     //     await expect(
     //       client.getTrades({
-    //         pool_name: 'SUI-USDC',
+    //         pool_name: 'SUI_USDC',
     //         from: futureTimestamp,
     //         to: futureTimestamp + 1000,
     //       })
@@ -820,70 +820,70 @@ describe('DeepbookClient', () => {
     //     mockHttpRequest.mockResolvedValue([]);
 
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 1 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', limit: 1 })
     //     ).resolves.toBeDefined();
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 100 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', limit: 100 })
     //     ).resolves.toBeDefined();
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 1000 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', limit: 1000 })
     //     ).resolves.toBeDefined();
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', limit: undefined })
+    //       client.getTrades({ pool_name: 'SUI_USDC', limit: undefined })
     //     ).resolves.toBeDefined();
     //   });
 
     //   it('should throw error for limit below minimum', async () => {
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 0 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', limit: 0 })
     //     ).rejects.toThrow('Limit must be at least 1, got: 0.');
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', limit: -1 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', limit: -1 })
     //     ).rejects.toThrow('Limit must be at least 1, got: -1.');
     //   });
 
     //   it('should throw error for limit above maximum', async () => {
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 1001 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', limit: 1001 })
     //     ).rejects.toThrow('Limit cannot exceed 1000, got: 1001.');
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 2000 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', limit: 2000 })
     //     ).rejects.toThrow('Limit cannot exceed 1000, got: 2000.');
     //   });
 
     //   it('should throw error for non-integer limits', async () => {
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 1.5 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', limit: 1.5 })
     //     ).rejects.toThrow('Limit must be an integer, got: 1.5.');
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', limit: 100.99 })
+    //       client.getTrades({ pool_name: 'SUI_USDC', limit: 100.99 })
     //     ).rejects.toThrow('Limit must be an integer, got: 100.99.');
     //   });
 
     //   it('should throw error for non-number types', async () => {
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', limit: '100' as unknown as number })
+    //       client.getTrades({ pool_name: 'SUI_USDC', limit: '100' as unknown as number })
     //     ).rejects.toThrow('Limit must be a number, got: string.');
     //     await expect(
-    //       client.getTrades({ pool_name: 'SUI-USDC', limit: null as unknown as number })
+    //       client.getTrades({ pool_name: 'SUI_USDC', limit: null as unknown as number })
     //     ).rejects.toThrow();
     //   });
 
     //   it('should validate limit in getOrderBookDepth', async () => {
     //     await expect(
-    //       client.getOrderBookDepth({ pool_name: 'SUI-USDC', limit: 0 })
+    //       client.getOrderBookDepth({ pool_name: 'SUI_USDC', limit: 0 })
     //     ).rejects.toThrow('Limit must be at least 1, got: 0.');
     //     await expect(
-    //       client.getOrderBookDepth({ pool_name: 'SUI-USDC', limit: 1001 })
+    //       client.getOrderBookDepth({ pool_name: 'SUI_USDC', limit: 1001 })
     //     ).rejects.toThrow('Limit cannot exceed 1000, got: 1001.');
     //   });
 
     //   it('should validate limit in getOHLCV', async () => {
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '1h', limit: 0 })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: '1h', limit: 0 })
     //     ).rejects.toThrow('Limit must be at least 1, got: 0.');
     //     await expect(
-    //       client.getOHLCV({ pool_name: 'SUI-USDC', timeframe: '1h', limit: 1001 })
+    //       client.getOHLCV({ pool_name: 'SUI_USDC', timeframe: '1h', limit: 1001 })
     //     ).rejects.toThrow('Limit cannot exceed 1000, got: 1001.');
     //   });
     // });

@@ -77,7 +77,7 @@ export class SurfluxDeepbookClient {
    * @example
    * ```typescript
    * const trades = await client.getTrades({
-   *   pool_name: 'SUI-USDC',
+   *   pool_name: 'SUI_USDC',
    *   from: 1699999999,
    *   to: 1700000000,
    *   limit: 100
@@ -111,7 +111,7 @@ export class SurfluxDeepbookClient {
    * @example
    * ```typescript
    * const orderBook = await client.getOrderBookDepth({
-   *   pool_name: 'SUI-USDC',
+   *   pool_name: 'SUI_USDC',
    *   limit: 20
    * });
    * ```
@@ -145,7 +145,7 @@ export class SurfluxDeepbookClient {
    * @example
    * ```typescript
    * const candles = await client.getOHLCV({
-   *   pool_name: 'SUI-USDC',
+   *   pool_name: 'SUI_USDC',
    *   timeframe: '1h',
    *   from: 1699999999,
    *   to: 1700000000,
@@ -191,7 +191,7 @@ export class SurfluxDeepbookClient {
     // // Most pool names follow BASE-QUOTE format with hyphen, but some may use underscores
     // if (!poolName.includes('-') && !poolName.includes('_')) {
     //   throw new Error(
-    //     `Invalid pool name format: "${poolName}". Pool name should contain at least one hyphen or underscore (e.g., 'SUI-USDC' or 'POOL_NAME').`
+    //     `Invalid pool name format: "${poolName}". Pool name should contain at least one hyphen or underscore (e.g., 'SUI_USDC' or 'POOL_NAME').`
     //   );
     // }
 
