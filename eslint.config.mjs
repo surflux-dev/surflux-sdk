@@ -9,7 +9,7 @@ export default [
     languageOptions: {
       parser: tseslintParser,
       parserOptions: {
-        project: true,
+        project: './tsconfig.eslint.json',
         tsconfigRootDir: import.meta.dirname,
         ecmaVersion: 2020,
         sourceType: 'module',
