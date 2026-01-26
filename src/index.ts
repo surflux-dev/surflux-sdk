@@ -3,6 +3,8 @@ export { SurfluxIndexerClient } from './clients/indexer';
 export type { SurfluxIndexerClient as SurfluxIndexerClientType } from './clients/indexer';
 export { SurfluxDeepbookClient } from './clients/deepbook';
 export type { SurfluxDeepbookClient as SurfluxDeepbookClientType } from './clients/deepbook';
+export { SurfluxDeepbookMarginClient } from './clients/deepbook-margin';
+export type { SurfluxDeepbookMarginClient as SurfluxDeepbookMarginClientType } from './clients/deepbook-margin';
 export { SurfluxNFTClient } from './clients/nft';
 export type { SurfluxNFTClient as SurfluxNFTClientType } from './clients/nft';
 export { SurfluxDeepbookEventsClient, type SurfluxDeepbookEventsClientConfig } from './clients/deepbook-events';

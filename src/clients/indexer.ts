@@ -2,6 +2,7 @@ import { SurfluxClientConfig } from '../types';
 import { SurfluxDeepbookClient } from './deepbook';
 import { SurfluxNFTClient } from './nft';
 import { __validateIndexerClientConfig } from '../utils';
+import { SurfluxDeepbookMarginClient } from './deepbook-margin';
 
 /**
  * Main client for accessing Surflux indexer services.
@@ -10,6 +11,8 @@ import { __validateIndexerClientConfig } from '../utils';
 export class SurfluxIndexerClient {
   /** Client for Deepbook trading pool data */
   public readonly deepbook: SurfluxDeepbookClient;
+  /** Client for Deepbook margin trading pool data */
+  public readonly deepbookMargin: SurfluxDeepbookMarginClient;
   /** Client for NFT collection and token data */
   public readonly nft: SurfluxNFTClient;
 
@@ -36,9 +39,11 @@ export class SurfluxIndexerClient {
     __validateIndexerClientConfig(config);
 
     this.deepbook = new SurfluxDeepbookClient(config);
+    this.deepbookMargin = new SurfluxDeepbookMarginClient(config);
     this.nft = new SurfluxNFTClient(config);
   }
 }
 
 export type { SurfluxDeepbookClient } from './deepbook';
+export type { SurfluxDeepbookMarginClient } from './deepbook-margin';
 export type { SurfluxNFTClient } from './nft';
