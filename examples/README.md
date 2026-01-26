@@ -74,7 +74,7 @@ node dist/examples/deepbook-basic.js
 - Timestamps are in Unix seconds
 
 ### Deepbook Event Streaming
-- Pool names use hyphen format: `SUI-USDC`
+- Pool names use hyphen format: `SUI_USDC`
 - `on()` handlers receive event data directly
 - `onAll()` handlers receive full event object with metadata
 - Two stream types: `ALL_UPDATES` (6 events) or `LIVE_TRADES` (2 events)
