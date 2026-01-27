@@ -25,6 +25,7 @@
 - [Usage](#usage)
   - [NFT API](#nft-api)
   - [Deepbook API](#deepbook-api)
+  - [Deepbook Margin API](#deepbook-margin-api)
   - [Package Event Streaming](#package-event-streaming)
   - [Deepbook Event Streaming](#deepbook-event-streaming)
 - [Error Handling](#error-handling)
@@ -235,6 +236,150 @@ const candlesticks = await surfluxClient.deepbook.getOHLCV({
   from: 1758603270,
   to: 1758703270,
   limit: 50
+});
+```
+
+---
+
+### Deepbook Margin API
+
+Access Deepbook margin pools, managers, loans, supplies, liquidations, and more.
+
+#### Initialize Client
+
+```typescript
+import { SurfluxIndexerClient, SurfluxNetwork } from '@surflux/sdk';
+
+const surfluxClient = new SurfluxIndexerClient({
+  apiKey: 'your-api-key',
+  network: SurfluxNetwork.MAINNET
+});
+```
+
+#### Get Margin Pools
+
+Returns a list of margin pools with optional filtering by asset type and deepbook pool ID.
+
+```typescript
+const pools = await surfluxClient.deepbookMargin.getMarginPools({
+  assetType: '0x2::sui::SUI',  // optional
+  deepbookPoolId: '0x123...'   // optional
+});
+```
+
+#### Get Registered Margin Pools
+
+Returns a list of all enabled registered DeepBook pools with their configurations.
+
+```typescript
+const registeredPools = await surfluxClient.deepbookMargin.getRegisteredMarginPools({
+  marginPoolId: '0x123...'  // optional
+});
+```
+
+#### Get Margin Managers
+
+Returns margin managers with optional filtering. Uses an optimized endpoint when owner is provided.
+
+```typescript
+const managers = await surfluxClient.deepbookMargin.getMarginManagers({
+  owner: '0x123...',           // optional (uses optimized endpoint if provided)
+  deepbookPoolId: '0x456...',  // optional
+  balanceManagerId: '0x789...', // optional
+  page: 0,                     // optional (starts from 0)
+  perPage: 20                  // optional (max 50)
+});
+```
+
+#### Get Active Loans
+
+Returns active loans with optional filtering. Uses an optimized endpoint when owner is provided.
+
+```typescript
+const loans = await surfluxClient.deepbookMargin.getActiveLoans({
+  owner: '0x123...',           // optional (uses optimized endpoint if provided)
+  marginPoolId: '0x456...',    // optional
+  balanceManagerId: '0x789...', // optional
+  marginManagerId: '0xabc...',  // optional (only when owner is not provided)
+  page: 0,
+  perPage: 20
+});
+```
+
+#### Get Active Supplies
+
+Returns active supply positions with optional filtering. Uses an optimized endpoint when owner is provided.
+
+```typescript
+const supplies = await surfluxClient.deepbookMargin.getActiveSupplies({
+  owner: '0x123...',           // optional (uses optimized endpoint if provided)
+  marginPoolId: '0x456...',    // optional
+  assetType: '0x2::sui::SUI',  // optional
+  supplierCapId: '0x789...',   // optional (only when owner is not provided)
+  page: 0,
+  perPage: 20
+});
+```
+
+#### Get Liquidations
+
+Returns liquidation events with optional filtering by checkpoint range.
+
+```typescript
+const liquidations = await surfluxClient.deepbookMargin.getLiquidations({
+  owner: '0x123...',           // optional (uses optimized endpoint if provided)
+  marginPoolId: '0x456...',    // optional
+  balanceManagerId: '0x789...', // optional
+  marginManagerId: '0xabc...',  // optional (only when owner is not provided)
+  fromCheckpoint: 1000000,     // optional
+  toCheckpoint: 2000000,       // optional
+  page: 0,
+  perPage: 20
+});
+```
+
+#### Get Supplier Caps
+
+Returns supplier capability objects with optional filtering by owner.
+
+```typescript
+const caps = await surfluxClient.deepbookMargin.getSupplierCaps({
+  owner: '0x123...',  // optional
+  page: 0,
+  perPage: 20
+});
+```
+
+#### Get Supplier Cap by ID
+
+Returns a specific supplier capability object by its ID.
+
+```typescript
+const cap = await surfluxClient.deepbookMargin.getSupplierCapById({
+  supplierCapId: '0x123...'
+});
+```
+
+#### Get Supply Referrals
+
+Returns supply referrals with optional filtering.
+
+```typescript
+const referrals = await surfluxClient.deepbookMargin.getSupplyReferrals({
+  owner: '0x123...',        // optional
+  marginPoolId: '0x456...',  // optional
+  page: 0,
+  perPage: 20
+});
+```
+
+#### Get Supply Referral by ID
+
+Returns a specific supply referral by its ID.
+
+```typescript
+const referral = await surfluxClient.deepbookMargin.getSupplyReferralById({
+  supplyReferralId: '0x123...'
 });
 ```
 
