@@ -100,6 +100,343 @@ export interface GetDeepbookOHLCVParams {
   limit?: number;
 }
 
+// Deepbook Margin API Types
+export interface DeepbookMarginPool {
+  pool_id: string;
+  asset_type: string;
+  asset_decimals: number;
+  asset_symbol: string;
+  asset_name: string;
+  deepbook_pool_id?: string;
+  [key: string]: unknown;
+}
+
+export interface RegisteredDeepbookMarginPool {
+  pool_id: string;
+  pool_name: string;
+  base_margin_pool_id: string;
+  quote_margin_pool_id: string;
+  base_asset_id: string;
+  quote_asset_id: string;
+  [key: string]: unknown;
+}
+
+export interface DeepbookMarginManager {
+  balance_manager_id: string;
+  owner: string;
+  pool_id: string;
+  deepbook_pool_id?: string;
+  [key: string]: unknown;
+}
+
+export interface DeepbookMarginActiveLoan {
+  loan_id: string;
+  balance_manager_id: string;
+  owner: string;
+  pool_id: string;
+  borrowed_amount: string;
+  collateral_amount: string;
+  [key: string]: unknown;
+}
+
+export interface DeepbookMarginActiveSupply {
+  supply_id: string;
+  supplier: string;
+  pool_id: string;
+  supplied_amount: string;
+  [key: string]: unknown;
+}
+
+export interface DeepbookMarginLiquidation {
+  liquidation_id: string;
+  balance_manager_id: string;
+  owner: string;
+  pool_id: string;
+  liquidated_amount: string;
+  timestamp: number;
+  [key: string]: unknown;
+}
+
+export interface DeepbookMarginSupplierCap {
+  supplier: string;
+  pool_id: string;
+  cap_amount: string;
+  current_supply: string;
+  [key: string]: unknown;
+}
+
+export interface DeepbookMarginSupplyReferral {
+  referrer: string;
+  referee: string;
+  pool_id: string;
+  referral_amount: string;
+  [key: string]: unknown;
+}
+
+// Deepbook Margin Request Interfaces
+/**
+ * Parameters for getting margin pools.
+ */
+export interface GetDeepbookMarginPoolsParams {
+  /**
+   * Filter by asset type.
+   * @example "0x2::sui::SUI"
+   */
+  assetType?: string;
+  /**
+   * Filter by DeepBook pool ID.
+   * @example "0x1234567890abcdef..."
+   */
+  deepbookPoolId?: string;
+}
+
+/**
+ * Parameters for getting registered DeepBook pools.
+ */
+export interface GetRegisteredDeepbookMarginPoolsParams {
+  /**
+   * Filter by margin pool ID (searches in both base_margin_pool_id and quote_margin_pool_id).
+   * @example "0x1234567890abcdef..."
+   */
+  marginPoolId?: string;
+}
+
+/**
+ * Parameters for getting margin managers.
+ */
+export interface GetDeepbookMarginManagersParams {
+  /**
+   * Owner address. When provided, uses the optimized owner-specific endpoint.
+   * @example "0x1234567890abcdef..."
+   */
+  owner?: string;
+  /**
+   * Filter by DeepBook pool ID.
+   * @example "0x1234567890abcdef..."
+   */
+  deepbookPoolId?: string;
+  /**
+   * Filter by balance manager ID.
+   * @example "0x1234567890abcdef..."
+   */
+  balanceManagerId?: string;
+  /**
+   * Page number for pagination (starts from 0).
+   * @minimum 0
+   * @default 0
+   */
+  page?: number;
+  /**
+   * Number of items per page.
+   * @minimum 1
+   * @maximum 50
+   * @default 10
+   */
+  perPage?: number;
+}
+
+/**
+ * Parameters for getting active loans.
+ */
+export interface GetDeepbookMarginActiveLoansParams {
+  /**
+   * Owner address. When provided, uses the optimized owner-specific endpoint.
+   * @example "0x1234567890abcdef..."
+   */
+  owner?: string;
+  /**
+   * Filter by margin pool ID.
+   * @example "0x1234567890abcdef..."
+   */
+  marginPoolId?: string;
+  /**
+   * Filter by balance manager ID.
+   * @example "0x1234567890abcdef..."
+   */
+  balanceManagerId?: string;
+  /**
+   * Filter by margin manager ID. Only valid when `owner` is not provided.
+   * @example "0x1234567890abcdef..."
+   */
+  marginManagerId?: string;
+  /**
+   * Page number for pagination (starts from 0).
+   * @minimum 0
+   * @default 0
+   */
+  page?: number;
+  /**
+   * Number of items per page.
+   * @minimum 1
+   * @maximum 50
+   * @default 10
+   */
+  perPage?: number;
+}
+
+/**
+ * Parameters for getting active supplies.
+ */
+export interface GetDeepbookMarginActiveSuppliesParams {
+  /**
+   * Owner address. When provided, uses the optimized owner-specific endpoint.
+   * @example "0x1234567890abcdef..."
+   */
+  owner?: string;
+  /**
+   * Filter by margin pool ID.
+   * @example "0x1234567890abcdef..."
+   */
+  marginPoolId?: string;
+  /**
+   * Filter by asset type.
+   * @example "0x2::sui::SUI"
+   */
+  assetType?: string;
+  /**
+   * Filter by supplier capability ID. Only valid when `owner` is not provided.
+   * @example "0x1234567890abcdef..."
+   */
+  supplierCapId?: string;
+  /**
+   * Page number for pagination (starts from 0).
+   * @minimum 0
+   * @default 0
+   */
+  page?: number;
+  /**
+   * Number of items per page.
+   * @minimum 1
+   * @maximum 50
+   * @default 10
+   */
+  perPage?: number;
+}
+
+/**
+ * Parameters for getting liquidations.
+ */
+export interface GetDeepbookMarginLiquidationsParams {
+  /**
+   * Owner address. When provided, uses the optimized owner-specific endpoint.
+   * @example "0x1234567890abcdef..."
+   */
+  owner?: string;
+  /**
+   * Filter by margin pool ID.
+   * @example "0x1234567890abcdef..."
+   */
+  marginPoolId?: string;
+  /**
+   * Filter by balance manager ID.
+   * @example "0x1234567890abcdef..."
+   */
+  balanceManagerId?: string;
+  /**
+   * Filter by margin manager ID. Only valid when `owner` is not provided.
+   * @example "0x1234567890abcdef..."
+   */
+  marginManagerId?: string;
+  /**
+   * Start checkpoint number (inclusive).
+   * @example 1000000
+   */
+  fromCheckpoint?: number;
+  /**
+   * End checkpoint number (inclusive).
+   * @example 2000000
+   */
+  toCheckpoint?: number;
+  /**
+   * Page number for pagination (starts from 0).
+   * @minimum 0
+   * @default 0
+   */
+  page?: number;
+  /**
+   * Number of items per page.
+   * @minimum 1
+   * @maximum 50
+   * @default 10
+   */
+  perPage?: number;
+}
+
+/**
+ * Parameters for getting supplier caps.
+ */
+export interface GetDeepbookMarginSupplierCapsParams {
+  /**
+   * Filter by owner address.
+   * @example "0x1234567890abcdef..."
+   */
+  owner?: string;
+  /**
+   * Page number for pagination (starts from 0).
+   * @minimum 0
+   * @default 0
+   */
+  page?: number;
+  /**
+   * Number of items per page.
+   * @minimum 1
+   * @maximum 50
+   * @default 10
+   */
+  perPage?: number;
+}
+
+/**
+ * Parameters for getting a supplier cap by ID.
+ */
+export interface GetDeepbookMarginSupplierCapByIdParams {
+  /**
+   * The supplier capability ID.
+   * @example "0x1234567890abcdef..."
+   */
+  supplierCapId: string;
+}
+
+/**
+ * Parameters for getting supply referrals.
+ */
+export interface GetDeepbookMarginSupplyReferralsParams {
+  /**
+   * Filter by owner address.
+   * @example "0x1234567890abcdef..."
+   */
+  owner?: string;
+  /**
+   * Filter by margin pool ID.
+   * @example "0x1234567890abcdef..."
+   */
+  marginPoolId?: string;
+  /**
+   * Page number for pagination (starts from 0).
+   * @minimum 0
+   * @default 0
+   */
+  page?: number;
+  /**
+   * Number of items per page.
+   * @minimum 1
+   * @maximum 50
+   * @default 10
+   */
+  perPage?: number;
+}
+
+/**
+ * Parameters for getting a supply referral by ID.
+ */
+export interface GetDeepbookMarginSupplyReferralByIdParams {
+  /**
+   * The supply referral ID.
+   * @example "0x1234567890abcdef..."
+   */
+  supplyReferralId: string;
+}
+
 // NFT API Response Types
 export interface NFTCollection {
   collection_id: string;
